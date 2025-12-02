@@ -513,7 +513,13 @@ function DepositContent() {
       const networkPublicName = selectedNetwork?.public_name?.toLowerCase() || ""
       const isMoovNetwork = networkName.includes("moov") || networkPublicName.includes("moov")
       const hasConnectDepositApi = selectedNetwork?.deposit_api === "connect"
-      
+      const isBurkinaFasoMoov = selectedNetwork?.country_code?.toLowerCase() === "bf"
+
+      // Use BF-specific phone number if available, otherwise fallback to regular
+      const moovMerchantPhone = isBurkinaFasoMoov && settings?.bf_moov_marchand_phone
+        ? settings.bf_moov_marchand_phone
+        : settings?.moov_marchand_phone
+
       console.log("MOOV Check:", {
         networkName,
         networkPublicName,
@@ -521,13 +527,15 @@ function DepositContent() {
         depositApi: selectedNetwork?.deposit_api,
         hasConnectDepositApi,
         hasSettings: !!settings,
-        moovMerchantPhone: settings?.moov_marchand_phone,
+        countryCode: selectedNetwork?.country_code,
+        isBurkinaFaso: isBurkinaFasoMoov,
+        moovMerchantPhone,
       })
-      
-      if (isMoovNetwork && hasConnectDepositApi && settings?.moov_marchand_phone) {
+
+      if (isMoovNetwork && hasConnectDepositApi && moovMerchantPhone) {
         const transactionAmount = Number(amount)
         const amountMinusOnePercent = Math.floor(transactionAmount * 0.99)
-        const ussdCode = `*155*2*1*${settings.moov_marchand_phone}*${amountMinusOnePercent}#`
+        const ussdCode = `*155*2*1*${moovMerchantPhone}*${amountMinusOnePercent}#`
         const encodedUssd = ussdCode.replace(/#/g, "%23")
         const telLink = `tel:${encodedUssd}`
         
@@ -551,6 +559,12 @@ function DepositContent() {
       // Check if ORANGE network with connect deposit_api and redirect to phone dial or show transaction link
       const isOrangeNetwork = networkName.includes("orange") || networkPublicName.includes("orange")
       const hasOrangeConnectDepositApi = selectedNetwork?.deposit_api === "connect"
+      const isBurkinaFasoOrange = selectedNetwork?.country_code?.toLowerCase() === "bf"
+
+      // Use BF-specific phone number if available, otherwise fallback to regular
+      const orangeMerchantPhone = isBurkinaFasoOrange && settings?.bf_orange_marchand_phone
+        ? settings.bf_orange_marchand_phone
+        : settings?.orange_marchand_phone
 
       console.log("Orange Check:", {
         networkName,
@@ -559,12 +573,14 @@ function DepositContent() {
         depositApi: selectedNetwork?.deposit_api,
         hasOrangeConnectDepositApi,
         hasSettings: !!settings,
-        orangeMerchantPhone: settings?.orange_marchand_phone,
+        countryCode: selectedNetwork?.country_code,
+        isBurkinaFaso: isBurkinaFasoOrange,
+        orangeMerchantPhone,
         paymentByLink: data?.payment_by_link,
         transactionLink: data?.transaction_link,
       })
 
-      if (isOrangeNetwork && hasOrangeConnectDepositApi && settings?.orange_marchand_phone) {
+      if (isOrangeNetwork && hasOrangeConnectDepositApi && orangeMerchantPhone) {
         // Check payment_by_link key from transaction response
         const paymentByLink = data?.payment_by_link === true
         const hasTransactionLink = data?.transaction_link
@@ -584,7 +600,7 @@ function DepositContent() {
         } else {
           // Use phone dialer for Orange network with USSD code
           const transactionAmount = Number(amount)
-          const ussdCode = `*144*2*1*${settings.orange_marchand_phone}*${transactionAmount}#`
+          const ussdCode = `*144*2*1*${orangeMerchantPhone}*${transactionAmount}#`
           const encodedUssd = ussdCode.replace(/#/g, "%23")
           const telLink = `tel:${encodedUssd}`
 
