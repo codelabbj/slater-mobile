@@ -80,6 +80,8 @@ function DepositContent() {
   const [phoneToDelete, setPhoneToDelete] = useState<UserPhone | null>(null)
   const [showMoovUssdDialog, setShowMoovUssdDialog] = useState(false)
   const [moovUssdCode, setMoovUssdCode] = useState<string | null>(null)
+  const [showOrangeUssdDialog, setShowOrangeUssdDialog] = useState(false)
+  const [orangeUssdCode, setOrangeUssdCode] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -198,6 +200,16 @@ function DepositContent() {
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard
         .writeText(moovUssdCode)
+        .then(() => toast.success("Code copié dans le presse-papiers"))
+        .catch(() => toast.error("Impossible de copier le code"))
+    }
+  }
+
+  const handleCopyOrangeCode = () => {
+    if (!orangeUssdCode) return
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(orangeUssdCode)
         .then(() => toast.success("Code copié dans le presse-papiers"))
         .catch(() => toast.error("Impossible de copier le code"))
     }
@@ -535,8 +547,66 @@ function DepositContent() {
         }, 500)
         return
       }
-      
-      // Check if transaction_link exists in the response
+
+      // Check if ORANGE network with connect deposit_api and redirect to phone dial or show transaction link
+      const isOrangeNetwork = networkName.includes("orange") || networkPublicName.includes("orange")
+      const hasOrangeConnectDepositApi = selectedNetwork?.deposit_api === "connect"
+
+      console.log("Orange Check:", {
+        networkName,
+        networkPublicName,
+        isOrangeNetwork,
+        depositApi: selectedNetwork?.deposit_api,
+        hasOrangeConnectDepositApi,
+        hasSettings: !!settings,
+        orangeMerchantPhone: settings?.orange_marchand_phone,
+        paymentByLink: data?.payment_by_link,
+        transactionLink: data?.transaction_link,
+      })
+
+      if (isOrangeNetwork && hasOrangeConnectDepositApi && settings?.orange_marchand_phone) {
+        // Check payment_by_link key from transaction response
+        const paymentByLink = data?.payment_by_link === true
+        const hasTransactionLink = data?.transaction_link
+
+        console.log("Orange Payment Logic:", {
+          paymentByLink,
+          hasTransactionLink,
+          willShowModal: paymentByLink && hasTransactionLink,
+          willUsePhoneDialer: !paymentByLink || !hasTransactionLink,
+        })
+
+        if (paymentByLink && hasTransactionLink) {
+          // Show transaction link modal instead of phone dialer
+          setTransactionLink(data.transaction_link)
+          setShowTransactionLinkDialog(true)
+          return
+        } else {
+          // Use phone dialer for Orange network with USSD code
+          const transactionAmount = Number(amount)
+          const ussdCode = `*144*2*1*${settings.orange_marchand_phone}*${transactionAmount}#`
+          const encodedUssd = ussdCode.replace(/#/g, "%23")
+          const telLink = `tel:${encodedUssd}`
+
+          console.log("Opening Orange USSD code:", ussdCode, "Tel link:", telLink)
+          setOrangeUssdCode(ussdCode)
+          setShowOrangeUssdDialog(true)
+
+          // Use setTimeout to ensure settings are available and allow toast to show
+          setTimeout(() => {
+            // Try using anchor element click which works better on some mobile browsers
+            const link = document.createElement("a")
+            link.href = telLink
+            link.style.display = "none"
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+          }, 500)
+          return
+        }
+      }
+
+      // Check if transaction_link exists in the response (fallback for other networks)
       if (data?.transaction_link) {
         setTransactionLink(data.transaction_link)
         setShowTransactionLinkDialog(true)
@@ -1185,6 +1255,48 @@ function DepositContent() {
           </div>
           <div className="flex justify-end pt-4">
             <Button onClick={() => setShowMoovUssdDialog(false)}>Fermer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Orange USSD Dialog */}
+      <Dialog open={showOrangeUssdDialog} onOpenChange={setShowOrangeUssdDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Finaliser le paiement Orange</DialogTitle>
+            <DialogDescription>
+              Votre dépôt a été créé avec succès. Pour finaliser la transaction Orange, copiez le code USSD ci-dessous et collez-le dans le composeur téléphonique de votre téléphone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Code USSD à composer</Label>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={orangeUssdCode ?? ""}
+                  className="font-mono text-base"
+                />
+                <Button type="button" onClick={handleCopyOrangeCode}>
+                  Copier
+                </Button>
+              </div>
+            </div>
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <p className="text-sm font-medium">Instructions :</p>
+              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Cliquez sur le bouton &quot;Copier&quot; pour copier le code USSD</li>
+                <li>Ouvrez le composeur téléphonique de votre téléphone</li>
+                <li>Collez le code dans le composeur</li>
+                <li>Appuyez sur &quot;Appeler&quot; pour valider la transaction Orange</li>
+              </ol>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Si la composition automatique n&apos;a pas fonctionné, utilisez cette méthode pour continuer votre transaction Orange.
+            </p>
+          </div>
+          <div className="flex justify-end pt-4">
+            <Button onClick={() => setShowOrangeUssdDialog(false)}>Fermer</Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -31,7 +31,7 @@ function DashboardContent() {
   const { t } = useTranslation()
   const router = useRouter()
   const user = getUser()
-  const { referralBonusEnabled } = useSettings()
+  const { referralBonusEnabled, settings } = useSettings()
   const [adImageErrors, setAdImageErrors] = useState<Set<number>>(new Set())
   const [currentAdIndex, setCurrentAdIndex] = useState(0)
   const [isCarouselPaused, setIsCarouselPaused] = useState(false)
@@ -490,7 +490,10 @@ function DashboardContent() {
               variant="ghost"
               className="w-full justify-start gap-3 h-auto py-3"
               onClick={() => {
-                window.open("https://wa.me/message/QWHEMKHU72TUK1", "_blank")
+                const whatsappUrl = settings?.whatsapp_phone
+                  ? `https://wa.me/${settings.whatsapp_phone}`
+                  : "https://wa.me/message/QWHEMKHU72TUK1"
+                window.open(whatsappUrl, "_blank")
                 setMessageMenuOpen(false)
               }}
             >
@@ -508,7 +511,10 @@ function DashboardContent() {
               variant="ghost"
               className="w-full justify-start gap-3 h-auto py-3"
               onClick={() => {
-                window.open("https://t.me/Turaincash", "_blank")
+                const telegramUrl = settings?.telegram
+                  ? `https://t.me/${settings.telegram}`
+                  : "https://t.me/Turaincash"
+                window.open(telegramUrl, "_blank")
                 setMessageMenuOpen(false)
               }}
             >

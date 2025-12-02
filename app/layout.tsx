@@ -98,7 +98,7 @@ export default function RootLayout({
           <footer className="px-4 py-6 text-center text-xs text-muted-foreground">
             Développé par{" "}
             <a
-              href="https://wa.me/22947030588"
+              href="https://codelab.bj/"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-primary underline-offset-4 hover:underline"

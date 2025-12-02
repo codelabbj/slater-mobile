@@ -4,6 +4,7 @@ import api from "@/lib/api"
 interface Settings {
   referral_bonus?: boolean
   moov_marchand_phone?: string | null
+  orange_marchand_phone?: string | null
   [key: string]: any
 }
 
