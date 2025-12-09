@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { ArrowDownCircle, ArrowUpCircle, LogOut, Bell, Gift, Moon, Sun, Ticket, UserCircle, MessageCircle } from "lucide-react"
+import type { PaginatedResponse, Notification } from "@/lib/types"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -52,6 +53,7 @@ function DashboardContent() {
       })
       return response.data.results
     },
+    refetchInterval: 120000, // Refresh every 2 minutes
   })
 
   type AdvertisementEntry = {
@@ -72,6 +74,16 @@ function DashboardContent() {
       }
     | null
     | undefined
+
+  // Fetch notification count
+  const { data: notificationData } = useQuery({
+    queryKey: ["notification-count"],
+    queryFn: async () => {
+      const response = await api.get<PaginatedResponse<Notification>>("/mobcash/notification")
+      return response.data
+    },
+    refetchInterval: 120000, // Refresh every 2 minutes
+  })
 
   // Fetch advertisements
   const { data: advertisements } = useQuery({
@@ -158,6 +170,9 @@ function DashboardContent() {
     setIsCarouselPaused(false)
   }
 
+  // Calculate unread notification count
+  const unreadNotificationCount = notificationData?.results.filter(n => !n.is_read).length || 0
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "accept":
@@ -193,13 +208,18 @@ function DashboardContent() {
               />
             </div>
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="rounded-full bg-primary/10 hover:bg-primary/20"
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full bg-primary/10 hover:bg-primary/20 relative"
                 onClick={() => router.push("/notifications")}
               >
                 <Bell className="h-5 w-5" />
+                {unreadNotificationCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-500">
+                    {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                  </Badge>
+                )}
               </Button>
               <Button 
                 variant="ghost" 

@@ -6,6 +6,18 @@ export interface User {
   phone: string
   bonus_available: number
   referral_code: string
+  username?: string
+  is_superuser?: boolean
+  is_delete?: boolean
+  otp?: string | null
+  otp_created_at?: string
+  is_block?: boolean
+  referrer_code?: string | null
+  is_active?: boolean
+  is_staff?: boolean
+  is_supperuser?: boolean
+  date_joined?: string
+  last_login?: string
 }
 
 export interface AuthResponse {

@@ -12,7 +12,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "TURAINCASH - Dépôt et Retrait",
   description: "Application de gestion de dépôts et retraits pour paris sportifs",
-  generator: "v0.app",
+
   viewport: {
     width: "device-width",
     initialScale: 1,

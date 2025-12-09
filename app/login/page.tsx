@@ -18,7 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import api from "@/lib/api"
 import { saveAuthData, type AuthResponse } from "@/lib/auth"
-import { notificationService } from "@/lib/firebase-notifications"
+import { unifiedFcmService } from "@/lib/firebase"
 
 const loginSchema = z.object({
   email_or_phone: z.string().min(1, "Ce champ est requis"),
@@ -70,15 +70,12 @@ export default function LoginPage() {
       
       toast.success("Connexion réussie!")
       
-      // Request notification permissions on mobile before showing dashboard
-      const platform = Capacitor.getPlatform()
-      if (platform === 'ios' || platform === 'android') {
+      // Send FCM token to backend after successful login
         try {
-          await notificationService.requestMobileNotificationPermissions()
+        await unifiedFcmService.sendTokenAfterLogin()
         } catch (error) {
-          console.error('Error requesting notification permissions:', error)
-          // Continue to dashboard even if permission request fails
-        }
+        console.error('Error sending FCM token after login:', error)
+        // Continue to dashboard even if token sending fails
       }
       
       router.push("/dashboard")

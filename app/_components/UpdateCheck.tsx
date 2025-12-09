@@ -325,10 +325,10 @@ export function UpdateCheck() {
 
   if (!show || !mounted) return null;
 
+  {/*
   const modalContent = (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999]">
       <div className="bg-white dark:bg-gray-800 p-5 rounded-xl text-center shadow-2xl z-[10000] max-w-md mx-4 relative">
-        {/* Close/Cancel button */}
         <button
           onClick={handleClose}
           className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -357,7 +357,9 @@ export function UpdateCheck() {
       </div>
     </div>
   );
+  */}
 
   // Render in a portal at document body level to ensure it's above everything
-  return createPortal(modalContent, document.body);
+  // return createPortal(modalContent, document.body);
+  return null;
 }

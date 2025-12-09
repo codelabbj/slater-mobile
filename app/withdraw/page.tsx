@@ -462,7 +462,7 @@ function WithdrawContent() {
         user_app_id: selectedBetId!.user_app_id,
         network: selectedNetwork!.id,
         withdriwal_code: withdrawalCode,
-        source: "web",
+        source: "mobile",
       }
       
       // Add city and street if available from platform

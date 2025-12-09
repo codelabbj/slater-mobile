@@ -2,6 +2,8 @@ import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
 //import { isPlatform } from '@ionic/core';
 import { Capacitor } from '@capacitor/core';
+import { getUser } from './auth';
+import api from './api';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -39,6 +41,7 @@ export class UnifiedFCMService {
   private token: string | null = null;
   private isInitialized = false;
   private platform: 'web' | 'ios' | 'android' = 'web';
+  private tokenSent = false; // Track if token has been sent to server
 
   private constructor() {
     if (typeof window !== 'undefined') {
@@ -90,7 +93,7 @@ export class UnifiedFCMService {
     if (this.token) {
       console.log('FCM Token (Web):', this.token);
       localStorage.setItem('fcm_token', this.token);
-      await this.sendTokenToServer(this.token);
+      // Don't send immediately - wait for login
     }
 
     // Setup foreground message listener
@@ -121,7 +124,7 @@ export class UnifiedFCMService {
       if (this.token) {
         console.log('FCM Token (Mobile):', this.token);
         localStorage.setItem('fcm_token', this.token);
-        await this.sendTokenToServer(this.token);
+        // Don't send immediately - wait for login
       }
 
       // Listen for notification received
@@ -164,25 +167,32 @@ export class UnifiedFCMService {
   }
 
   /**
-   * Send token to your backend server
+   * Send FCM token to backend after user login (public method)
+   */
+  public async sendTokenAfterLogin(): Promise<void> {
+    const storedToken = this.getToken();
+    if (storedToken && !this.tokenSent) {
+      await this.sendTokenToServer(storedToken);
+      this.tokenSent = true;
+    }
+  }
+
+  /**
+   * Send token to your backend server (private method)
    */
   private async sendTokenToServer(token: string): Promise<void> {
     try {
-      const response = await fetch('/api/fcm/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          platform: this.platform,
-          userId: null, // Add your user ID logic
-        }),
+      // Get user ID from stored user data
+      const user = getUser();
+      const userId = user?.id || null;
+
+      const response = await api.post('/mobcash/devices/', {
+        registration_id: token,
+        type: this.platform === 'ios' ? 'ios' : 'android',
+        user_id: userId,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to send token to server');
-      }
+      console.log('FCM token sent to server successfully');
     } catch (error) {
       console.error('Error sending token to server:', error);
     }
@@ -194,9 +204,33 @@ export class UnifiedFCMService {
   public getPlatform(): string {
     return this.platform;
   }
+
+  /**
+   * Mark the FCM token as sent to prevent duplicate sending
+   */
+  public markTokenAsSent(): void {
+    this.tokenSent = true;
+  }
 }
 
 // Export singleton instance
 export const unifiedFcmService = UnifiedFCMService.getInstance();
+
+// Test function to send device registration with access token
+export const testDeviceRegistration = async (): Promise<void> => {
+  try {
+    const token = unifiedFcmService.getToken();
+    if (!token) {
+      console.warn('No FCM token available');
+      return;
+    }
+
+    console.log('Testing device registration with token:', token);
+    await unifiedFcmService.sendTokenAfterLogin();
+    console.log('Device registration test completed');
+  } catch (error) {
+    console.error('Device registration test failed:', error);
+  }
+};
 
 export default app;

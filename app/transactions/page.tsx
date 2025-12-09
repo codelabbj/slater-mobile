@@ -43,6 +43,7 @@ function TransactionsContent() {
       })
       return response.data
     },
+    refetchInterval: 120000, // Refresh every 2 minutes
   })
 
   // Filter transactions based on search and filters

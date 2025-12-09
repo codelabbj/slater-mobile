@@ -491,7 +491,7 @@ function DepositContent() {
         app: selectedPlatform!.id,
         user_app_id: selectedBetId!.user_app_id,
         network: selectedNetwork!.id,
-        source: "web",
+        source: "mobile",
       }
       
       // Add city and street if available from platform
