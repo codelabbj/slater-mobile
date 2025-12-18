@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import api from "@/lib/api"
 import { saveAuthData, type AuthResponse } from "@/lib/auth"
 import { unifiedFcmService } from "@/lib/firebase"
+import { notificationService } from "@/lib/firebase-notifications"
 
 const loginSchema = z.object({
   email_or_phone: z.string().min(1, "Ce champ est requis"),
@@ -76,6 +77,15 @@ export default function LoginPage() {
         } catch (error) {
         console.error('Error sending FCM token after login:', error)
         // Continue to dashboard even if token sending fails
+      }
+
+      // Initialize and request native notification permissions after login
+      try {
+        await notificationService.initialize()
+        await notificationService.requestMobileNotificationPermissions()
+      } catch (error) {
+        console.error('Error requesting notification permissions:', error)
+        // Continue to dashboard even if permission request fails
       }
       
       router.push("/dashboard")
@@ -192,8 +202,8 @@ export default function LoginPage() {
             <Input
               id="forgot-email"
               type="email"
-              placeholder="votre@email.com"
-              className="mobile-input"
+              placeholder="Entrez votre adresse e-mail"
+              className="mobile-form-input"
               value={forgotPasswordEmail}
               onChange={(e) => setForgotPasswordEmail(e.target.value)}
               disabled={isForgotPasswordLoading}
@@ -202,7 +212,8 @@ export default function LoginPage() {
 
           <Button
             type="button"
-            className="w-full mobile-button"
+            variant="glow"
+            className="w-full mobile-btn-enhanced"
             onClick={handleSendOtp}
             disabled={isForgotPasswordLoading}
           >
@@ -231,8 +242,8 @@ export default function LoginPage() {
             <Input
               id="forgot-otp"
               type="text"
-              placeholder="0000"
-              className="mobile-input"
+              placeholder="Entrez le code reçu"
+              className="mobile-form-input"
               value={forgotPasswordOtp}
               onChange={(e) => setForgotPasswordOtp(e.target.value)}
               disabled={isForgotPasswordLoading}
@@ -245,7 +256,8 @@ export default function LoginPage() {
 
           <Button
             type="button"
-            className="w-full mobile-button"
+            variant="glow"
+            className="w-full mobile-btn-enhanced"
             onClick={handleVerifyOtp}
             disabled={isForgotPasswordLoading}
           >
@@ -276,8 +288,8 @@ export default function LoginPage() {
               <Input
                 id="forgot-new-password"
                 type={showNewPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="mobile-input pr-10"
+                placeholder="Entrez votre nouveau mot de passe"
+                className="mobile-form-input pr-10"
                 value={forgotPasswordNewPassword}
                 onChange={(e) => setForgotPasswordNewPassword(e.target.value)}
                 disabled={isForgotPasswordLoading}
@@ -310,8 +322,8 @@ export default function LoginPage() {
               <Input
                 id="forgot-confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="mobile-input pr-10"
+                placeholder="Confirmez votre nouveau mot de passe"
+                className="mobile-form-input pr-10"
                 value={forgotPasswordConfirmPassword}
                 onChange={(e) => setForgotPasswordConfirmPassword(e.target.value)}
                 disabled={isForgotPasswordLoading}
@@ -335,7 +347,8 @@ export default function LoginPage() {
 
           <Button
             type="button"
-            className="w-full mobile-button"
+            variant="glow"
+            className="w-full mobile-btn-enhanced"
             onClick={handleResetPassword}
             disabled={isForgotPasswordLoading}
           >
@@ -358,20 +371,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
-      <Card className="mobile-card w-full max-w-md">
+    <div className="min-h-screen gradient-background flex items-center justify-center p-4 mobile-safe-touch">
+      <Card className="floating-card w-full max-w-md animate-scale-in">
         <CardHeader className="space-y-3 text-center">
           <div className="flex justify-center mb-2">
             <Image
-              src="/Turaincash-logo.png"
-              alt="TurainCash Logo"
+              src="/Slater-logo.png"
+              alt="Slater Logo"
               width={120}
               height={120}
-              className="object-contain"
+              className="object-contain animate-float"
               priority
             />
           </div>
-          <CardTitle className="mobile-heading text-2xl">TURAINCASH</CardTitle>
+          <CardTitle className="mobile-heading text-2xl">Slater</CardTitle>
           <CardDescription className="mobile-text">
             {isForgotPassword ? "Réinitialisation du mot de passe" : t("login")}
           </CardDescription>
@@ -388,8 +401,8 @@ export default function LoginPage() {
                 <Input
                   id="email_or_phone"
                   type="text"
-                  placeholder="john@example.com ou 22507000"
-                  className="mobile-input"
+                  placeholder="Entrez votre e-mail ou numéro de téléphone"
+                  className="mobile-form-input"
                   {...register("email_or_phone")}
                   disabled={isLoading}
                 />
@@ -397,13 +410,15 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="password" className="mobile-text font-medium">{t("password")}</Label>
+                <Label htmlFor="password" className="mobile-text font-medium">
+                  {t("password")}
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    className="mobile-input pr-10"
+                    placeholder="Entrez votre mot de passe"
+                    className="mobile-form-input pr-10"
                     {...register("password")}
                     disabled={isLoading}
                   />
@@ -454,7 +469,7 @@ export default function LoginPage() {
                 </Button>
               </div>
 
-              <Button type="submit" className="w-full mobile-button" disabled={isLoading}>
+              <Button type="submit" variant="glow" className="w-full mobile-btn-enhanced" disabled={isLoading}>
                 {isLoading ? t("loading") : t("loginButton")}
               </Button>
             </form>

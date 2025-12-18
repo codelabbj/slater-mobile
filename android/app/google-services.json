@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "665076337085",
-    "project_id": "turaincash-57c48",
-    "storage_bucket": "turaincash-57c48.firebasestorage.app"
+    "project_number": "259484846842",
+    "project_id": "slaterapp-a9e14",
+    "storage_bucket": "slaterapp-a9e14.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:665076337085:android:bd4148cd1d989183292ad4",
+        "mobilesdk_app_id": "1:259484846842:android:c5265877e38d0a7c331743",
         "android_client_info": {
-          "package_name": "com.turaincash.android"
+          "package_name": "com.slater.android"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC7XoTvmAQ5UCViDMtu8yAwNT7GikhW6JU"
+          "current_key": "AIzaSyA1MPhifSa-Qg0bgVXnjFe_YadndVBqBJ4"
         }
       ],
       "services": {

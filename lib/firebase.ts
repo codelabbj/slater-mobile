@@ -7,30 +7,39 @@ import api from './api';
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "demo-api-key",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "demo-project.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "demo-project",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "demo-project.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:demo",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-XXXXXXXXXX",
 };
 
-// Initialize Firebase
-let app: FirebaseApp;
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApps()[0];
-}
+// Check if Firebase is properly configured
+const isFirebaseConfigured = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== "demo-project";
 
-// Initialize messaging only for web
+// Initialize Firebase only if properly configured
+let app: FirebaseApp | null = null;
 let messaging: Messaging | null = null;
-if (typeof window !== 'undefined' && Capacitor.getPlatform() === 'web') {
-  messaging = getMessaging(app);
+
+if (isFirebaseConfigured) {
+  if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApps()[0];
+  }
+
+  // Initialize messaging only for web and only if Firebase is configured
+  if (typeof window !== 'undefined' && Capacitor.getPlatform() === 'web') {
+    messaging = getMessaging(app);
+  }
+} else {
+  console.warn('Firebase is not configured. Please set up environment variables in .env.local. See FIREBASE_SETUP.md for instructions.');
 }
 
-export { messaging };
+export { messaging, isFirebaseConfigured };
 
 // VAPID key for web push notifications
 const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
@@ -78,7 +87,10 @@ export class UnifiedFCMService {
    * Initialize web notifications
    */
   private async initializeWeb(): Promise<void> {
-    if (typeof window === 'undefined' || !messaging) return;
+    if (typeof window === 'undefined' || !messaging || !isFirebaseConfigured) {
+      console.warn('Firebase messaging not available. Please configure Firebase first.');
+      return;
+    }
 
     // Request notification permission
     const permission = await this.requestNotificationPermission();

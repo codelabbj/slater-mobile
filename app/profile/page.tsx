@@ -170,7 +170,7 @@ function ProfileContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+      <div className="min-h-screen gradient-background flex items-center justify-center mobile-safe-touch">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent mb-2"></div>
           <p className="text-sm text-muted-foreground">{t("loading")}</p>
@@ -180,45 +180,76 @@ function ProfileContent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen gradient-background mobile-safe-touch">
       {/* Header */}
-      <header className="bg-background border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
+      <header className="bg-background/80 backdrop-blur-md border-b sticky top-0 z-20 safe-area-top">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-xl"
+            onClick={() => router.push("/dashboard")}
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold">Profil</h1>
+          <div className="flex flex-col">
+            <h1 className="text-lg font-semibold">Profil</h1>
+            <p className="text-xs text-muted-foreground">
+              Gérez vos informations personnelles et votre sécurité
+            </p>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-2xl space-y-6">
+      <main className="px-4 py-4 max-w-2xl mx-auto space-y-4">
+        {/* Profile Summary */}
+        <Card className="floating-card border-0 shadow-lg">
+          <CardContent className="flex items-center gap-4 pt-4 pb-4">
+            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <UserCircle className="h-8 w-8 sm:h-9 sm:w-9 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate">
+                {profile?.first_name} {profile?.last_name}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {profile?.email || "Email indisponible"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Profile Information Card */}
-        <Card>
+        <Card className="floating-card border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
               <UserCircle className="h-5 w-5" />
               Informations personnelles
             </CardTitle>
-            <CardDescription>Modifiez vos informations personnelles</CardDescription>
+            <CardDescription className="text-xs">
+              Modifiez vos informations personnelles
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleProfileSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name">Prénom</Label>
+                <Label htmlFor="first_name">Prénom</Label>
                   <Input
                     id="first_name"
                     type="text"
+                    className="mobile-form-input"
                     value={profileForm.first_name}
                     onChange={(e) => setProfileForm({ ...profileForm, first_name: e.target.value })}
                     disabled={editProfileMutation.isPending}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="last_name">Nom</Label>
+                <Label htmlFor="last_name">Nom</Label>
                   <Input
                     id="last_name"
                     type="text"
+                    className="mobile-form-input"
                     value={profileForm.last_name}
                     onChange={(e) => setProfileForm({ ...profileForm, last_name: e.target.value })}
                     disabled={editProfileMutation.isPending}
@@ -234,6 +265,7 @@ function ProfileContent() {
                 <Input
                   id="email"
                   type="email"
+                  className="mobile-form-input"
                   value={profileForm.email}
                   onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                   disabled={editProfileMutation.isPending}
@@ -248,6 +280,7 @@ function ProfileContent() {
                 <Input
                   id="phone"
                   type="tel"
+                  className="mobile-form-input"
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                   disabled={editProfileMutation.isPending}
@@ -262,9 +295,9 @@ function ProfileContent() {
         </Card>
 
         {/* Account Information */}
-        <Card>
+        <Card className="floating-card border-0 shadow-lg">
           <CardHeader>
-            <CardTitle>Informations du compte</CardTitle>
+            <CardTitle className="text-base">Informations du compte</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between items-center">
@@ -293,13 +326,15 @@ function ProfileContent() {
         </Card>
 
         {/* Change Password Card */}
-        <Card>
+        <Card className="floating-card border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
               <Lock className="h-5 w-5" />
               Changer le mot de passe
             </CardTitle>
-            <CardDescription>Mettez à jour votre mot de passe pour sécuriser votre compte</CardDescription>
+            <CardDescription className="text-xs">
+              Mettez à jour votre mot de passe pour sécuriser votre compte
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
@@ -309,11 +344,11 @@ function ProfileContent() {
                   <Input
                     id="old_password"
                     type={showOldPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Entrez votre ancien mot de passe"
+                    className="mobile-form-input pr-10"
                     value={passwordForm.old_password}
                     onChange={(e) => setPasswordForm({ ...passwordForm, old_password: e.target.value })}
                     disabled={changePasswordMutation.isPending}
-                    className="pr-10"
                   />
                   <Button
                     type="button"
@@ -338,11 +373,11 @@ function ProfileContent() {
                   <Input
                     id="new_password"
                     type={showNewPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Entrez votre nouveau mot de passe"
+                    className="mobile-form-input pr-10"
                     value={passwordForm.new_password}
                     onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
                     disabled={changePasswordMutation.isPending}
-                    className="pr-10"
                   />
                   <Button
                     type="button"
@@ -367,11 +402,11 @@ function ProfileContent() {
                   <Input
                     id="confirm_new_password"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Confirmez votre nouveau mot de passe"
+                    className="mobile-form-input pr-10"
                     value={passwordForm.confirm_new_password}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirm_new_password: e.target.value })}
                     disabled={changePasswordMutation.isPending}
-                    className="pr-10"
                   />
                   <Button
                     type="button"

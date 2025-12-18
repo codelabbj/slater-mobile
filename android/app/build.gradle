@@ -14,10 +14,10 @@ apply plugin: 'com.android.application'
 
 
 // android {
-//     namespace "com.turnaicash.app"
+//     namespace "com.slater.app"
 //     compileSdk rootProject.ext.compileSdkVersion
 //     defaultConfig {
-//         applicationId "com.turnaicash.app"
+//         applicationId "com.slater.app"
 //         minSdkVersion rootProject.ext.minSdkVersion
 //         targetSdkVersion rootProject.ext.targetSdkVersion
 //         versionCode 1
@@ -38,12 +38,12 @@ apply plugin: 'com.android.application'
 // }
 
 android {
-    namespace "com.turnaicash.app"
+    namespace "com.slater.app"
     compileSdkVersion 35
 
     defaultConfig {
-//        applicationId "com.turnaicash.android"
-        applicationId "com.turaincash.android"   // ✅ correct
+//        applicationId "com.slater.android"
+        applicationId "com.slater.android"   // ✅ correct
         minSdkVersion 23
         targetSdkVersion 34
         //targetSdkVersion 35  // <-- update this too for consistency
@@ -54,9 +54,9 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("turnaicash.keystore")
+            storeFile file("slater.keystore")
             storePassword "CodeLab1992"
-            keyAlias "turnaicash"
+            keyAlias "slater"
             keyPassword "CodeLab1992"
         }
     }

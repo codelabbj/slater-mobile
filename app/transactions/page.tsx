@@ -91,7 +91,7 @@ function TransactionsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen gradient-background mobile-safe-touch">
       {/* Mobile Header */}
       <header className="bg-background border-b sticky top-0 z-50 safe-area-top">
         <div className="px-4 py-3">

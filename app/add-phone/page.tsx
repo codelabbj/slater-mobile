@@ -128,7 +128,7 @@ function AddPhoneContent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen gradient-background mobile-safe-touch">
       {/* Header */}
       <header className="bg-background border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
@@ -222,7 +222,7 @@ function AddPhoneContent() {
                 </p>
               </div>
 
-              <Button type="submit" className="w-full" disabled={addPhoneMutation.isPending}>
+              <Button type="submit" variant="glow" className="w-full mobile-btn-enhanced" disabled={addPhoneMutation.isPending}>
                 {addPhoneMutation.isPending ? t("loading") : "Ajouter"}
               </Button>
             </form>

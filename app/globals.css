@@ -173,16 +173,23 @@
     @apply min-h-[44px] text-base; /* Prevent zoom on iOS */
   }
   
+  .mobile-form-input {
+    @apply min-h-[50px] text-base rounded-2xl border border-primary/25 bg-muted/70 px-4 py-3
+      shadow-md
+      focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:border-primary/80
+      dark:bg-background/70 dark:border-primary/40;
+  }
+  
   .mobile-text {
-    @apply text-sm sm:text-base;
+    @apply text-sm sm:text-base text-muted-foreground;
   }
   
   .mobile-heading {
-    @apply text-lg sm:text-xl font-semibold;
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight text-foreground;
   }
   
   .mobile-subheading {
-    @apply text-base sm:text-lg font-medium;
+    @apply text-base sm:text-lg font-medium text-muted-foreground;
   }
   
   /* Safe area handling for mobile devices */
@@ -220,5 +227,33 @@
   .mobile-header {
     @apply sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b;
     padding-top: env(safe-area-inset-top);
+  }
+
+  /* Button enhancements */
+  .mobile-btn-enhanced {
+    @apply min-h-[52px] text-base font-semibold rounded-2xl shadow-lg transition-all duration-200 hover:shadow-xl active:scale-[0.98];
+  }
+
+  .btn-glow {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.2), 0 4px 6px -2px rgba(124, 58, 237, 0.1);
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-glow:hover {
+    background: linear-gradient(135deg, #6d28d9 0%, #9333ea 50%, #a855f7 100%);
+    box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.3), 0 10px 10px -5px rgba(124, 58, 237, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .btn-glow:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 6px -2px rgba(124, 58, 237, 0.2);
+  }
+
+  .btn-outline-glow {
+    @apply border-2 border-primary/50 bg-background/50 text-primary hover:bg-primary/10 hover:border-primary/80 shadow-md hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98];
   }
 }

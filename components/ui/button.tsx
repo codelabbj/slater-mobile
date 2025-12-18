@@ -19,14 +19,19 @@ const buttonVariants = cva(
         ghost:
           'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
         link: 'text-primary underline-offset-4 hover:underline',
+        // New modern variants
+        glow: 'bg-gradient-to-r from-primary via-primary/90 to-primary text-primary-foreground shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 hover:scale-105 border-0',
+        'outline-glow': 'btn-outline-glow',
+        gradient: 'gradient-primary text-primary-foreground hover:shadow-lg',
+        glass: 'glass-panel text-foreground hover:bg-white/10 dark:hover:bg-white/5',
       },
       size: {
-        default: 'h-9 px-4 py-2 has-[>svg]:px-3 min-h-[44px]',
-        sm: 'h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 min-h-[44px]',
-        lg: 'h-10 rounded-md px-6 has-[>svg]:px-4 min-h-[44px]',
-        icon: 'size-9 min-h-[44px] min-w-[44px]',
-        'icon-sm': 'size-8 min-h-[44px] min-w-[44px]',
-        'icon-lg': 'size-10 min-h-[44px] min-w-[44px]',
+        default: 'h-12 px-4 py-2 has-[>svg]:px-3 min-h-[44px] sm:h-12 sm:px-6',
+        sm: 'h-10 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 min-h-[44px] sm:h-10',
+        lg: 'h-12 rounded-lg px-8 has-[>svg]:px-6 min-h-[44px] sm:h-12',
+        icon: 'size-12 min-h-[44px] min-w-[44px] sm:size-12',
+        'icon-sm': 'size-10 min-h-[44px] min-w-[44px] sm:size-10',
+        'icon-lg': 'size-14 min-h-[44px] min-w-[44px] sm:size-14',
       },
     },
     defaultVariants: {

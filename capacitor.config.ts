@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli"
 
 const config: CapacitorConfig = {
-  appId: "com.turnaicash.app",
-  appName: "TURAINCASH",
+  appId: "com.slater.app",
+  appName: "Slater",
   webDir: "out",
   //bundledWebRuntime: false,
   // plugins: {
@@ -13,12 +13,12 @@ const config: CapacitorConfig = {
   // plugins: {
   //   CapacitorUpdater: {
   //     autoUpdate: true,
-  //     server: "https://turnaicash-mobile-app-1-p3ef20nbk-codelabbjgmailcoms-projects.vercel.app",
+  //     server: "https://slater-mobile-app-1-p3ef20nbk-codelabbjgmailcoms-projects.vercel.app",
   //   }
   // },
   server: {
     // androidScheme: "https",
-    url: "https://turnaicash-mobile-app-1.vercel.app",
+    url: "https://slaterci-mobile-app.vercel.app",
     cleartext: false
   },
 }

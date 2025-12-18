@@ -1,14 +1,14 @@
 # Android App Icon Setup Guide
 
-This guide will help you set up the Turaincash logo as the Android app icon.
+This guide will help you set up the Slater logo as the Android app icon.
 
 ## Quick Method: Using Online Tools
 
 ### Option 1: Android Asset Studio (Recommended)
 1. Go to: https://romannurik.github.io/AndroidAssetStudio/icons-launcher.html
-2. Upload your logo: `public/Turaincash-logo.png`
+2. Upload your logo: `public/Slater-logo.png`
 3. Configure:
-   - **Foreground**: Upload `Turaincash-logo.png`
+   - **Foreground**: Upload `Slater-logo.png`
    - **Background**: Set to `#00FFFF` (cyan) or use a solid color
    - **Padding**: Adjust as needed (recommended: 20%)
 4. Click "Download" to get a ZIP file
@@ -16,7 +16,7 @@ This guide will help you set up the Turaincash logo as the Android app icon.
 
 ### Option 2: Icon Kitchen
 1. Go to: https://icon.kitchen/
-2. Upload `public/Turaincash-logo.png`
+2. Upload `public/Slater-logo.png`
 3. Select "Android" platform
 4. Download and extract
 5. Copy the generated `res` folder contents to `android/app/src/main/res/`
@@ -28,7 +28,7 @@ This guide will help you set up the Turaincash logo as the Android app icon.
 3. Select "Launcher Icons (Adaptive and Legacy)"
 4. Configure:
    - **Foreground Layer**: 
-     - Path: Select `public/Turaincash-logo.png`
+     - Path: Select `public/Slater-logo.png`
      - Scaling: Adjust to fit (recommended: 80-90%)
    - **Background Layer**:
      - Color: `#00FFFF` (cyan)

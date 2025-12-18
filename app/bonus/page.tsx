@@ -43,7 +43,7 @@ function BonusContent() {
   // Show loading or nothing while checking settings
   if (settingsLoading) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+      <div className="min-h-screen gradient-background flex items-center justify-center mobile-safe-touch">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent mb-2"></div>
           <p className="text-sm text-muted-foreground">{t("loading")}</p>
@@ -169,54 +169,77 @@ function BonusContent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen gradient-background mobile-safe-touch">
       {/* Header */}
-      <header className="bg-background border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
+      <header className="bg-background/80 backdrop-blur-md border-b sticky top-0 z-20 safe-area-top">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-xl"
+            onClick={() => router.push("/dashboard")}
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold">{t("bonus")}</h1>
+          <div className="flex flex-col">
+            <h1 className="text-lg font-semibold">{t("bonus")}</h1>
+            <p className="text-xs text-muted-foreground">
+              Consultez et utilisez votre bonus de parrainage
+            </p>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-2xl space-y-6">
+      <main className="px-4 py-4 max-w-2xl mx-auto space-y-4">
         {/* Current Bonus Card */}
-        <Card className="bg-gradient-to-br from-amber-500 to-orange-500 text-white border-0">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm opacity-90">{t("bonusAvailable")}</p>
-                <p className="text-4xl font-bold">{bonusAvailable} FCFA</p>
-                <p className="text-xs opacity-75">Utilisable pour vos transactions</p>
+        <Card className="floating-card border-0 shadow-lg relative overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-primary/15 dark:from-primary/20 dark:via-primary/10 dark:to-primary/25">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/10 animate-pulse"></div>
+          <CardContent className="relative pt-6 pb-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                  <p className="text-xs font-medium text-primary/80 uppercase tracking-wider">{t("bonusAvailable")}</p>
+                </div>
+                <p className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary/90 bg-clip-text text-transparent">
+                  {bonusAvailable.toLocaleString()} FCFA
+                </p>
+                <p className="text-xs text-muted-foreground/80 font-medium">
+                  Utilisable pour vos transactions éligibles
+                </p>
               </div>
-              <div className="bg-white/20 rounded-full p-4">
-                <Gift className="h-12 w-12" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-xl scale-110 animate-pulse"></div>
+                <div className="relative bg-gradient-to-br from-primary/15 to-primary/25 border border-primary/20 rounded-3xl p-5 flex items-center justify-center shadow-xl shadow-primary/10">
+                  <Gift className="h-12 w-12 sm:h-14 sm:w-14 text-primary drop-shadow-sm" />
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Total Earned Card */}
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="floating-card border-0 shadow-lg">
+          <CardContent className="pt-4 pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total gagné</p>
+                <p className="text-xs text-muted-foreground">Total gagné</p>
                 <p className="text-2xl font-bold">{totalBonus} FCFA</p>
               </div>
-              <div className="bg-green-500/10 rounded-full p-3">
-                <TrendingUp className="h-6 w-6 text-green-500" />
+              <div className="bg-emerald-500/10 rounded-2xl p-3">
+                <TrendingUp className="h-6 w-6 text-emerald-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Create Bonus Transaction */}
-        <Card>
+        <Card className="floating-card border-0 shadow-lg">
           <CardHeader>
-            <CardTitle>Utiliser mon bonus</CardTitle>
-            <CardDescription>Créez une transaction avec votre bonus disponible</CardDescription>
+            <CardTitle className="text-base">Utiliser mon bonus</CardTitle>
+            <CardDescription className="text-xs">
+              Créez une transaction avec votre bonus disponible
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {bonusAvailable > 0 ? (
@@ -308,10 +331,10 @@ function BonusContent() {
               </form>
             ) : (
               <div className="text-center py-6">
-                <p className="text-muted-foreground">
-                  Vous n'avez pas de bonus disponible pour le moment.
+                <p className="text-sm text-muted-foreground">
+                  Vous n&apos;avez pas de bonus disponible pour le moment.
                 </p>
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-2">
                   Vos bonus apparaîtront ici une fois que vous en aurez reçu.
                 </p>
               </div>
@@ -320,41 +343,53 @@ function BonusContent() {
         </Card>
 
         {/* Bonus History */}
-        <Card>
+        <Card className="floating-card border-0 shadow-lg">
           <CardHeader>
-            <CardTitle>Historique des bonus</CardTitle>
-            <CardDescription>
-              {bonusData?.count || 0} bonus reçu{(bonusData?.count || 0) > 1 ? "s" : ""}
+            <CardTitle className="text-base">Historique des bonus</CardTitle>
+            <CardDescription className="text-xs">
+              {bonusData?.count || 0} bonus reçu
+              {(bonusData?.count || 0) > 1 ? "s" : ""}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {bonusLoading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent mb-2"></div>
+              <div className="text-center py-10 text-muted-foreground">
+                <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent mb-2" />
                 <p className="text-sm">{t("loading")}</p>
               </div>
             ) : !bonusData?.results || bonusData.results.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Gift className="h-12 w-12 mx-auto mb-2 text-muted-foreground/50" />
-                <p>Aucun bonus pour le moment</p>
-                <p className="text-sm mt-1">Vos bonus apparaîtront ici</p>
+              <div className="text-center py-10 text-muted-foreground">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/60 mb-3">
+                  <Gift className="h-6 w-6 text-muted-foreground/70" />
+                </div>
+                <p className="font-semibold text-foreground">Aucun bonus pour le moment</p>
+                <p className="text-xs mt-1">
+                  Vos bonus apparaîtront ici dès qu&apos;ils seront crédités.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
                 {bonusData.results.map((bonus) => (
-                  <div key={bonus.id} className="p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+                  <div
+                    key={bonus.id}
+                    className="p-4 rounded-2xl border border-amber-500/20 bg-background/80 hover:bg-amber-500/5 hover:border-amber-500/50 hover:shadow-md transition-all duration-200 ease-out"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="bg-amber-500/10 rounded-full p-2">
+                        <div className="bg-amber-500/10 rounded-2xl p-2.5">
                           <Gift className="h-5 w-5 text-amber-500" />
                         </div>
                         <div>
-                          <p className="font-medium">{bonus.reason_bonus}</p>
-                          <p className="text-sm text-muted-foreground">{formatDate(bonus.created_at)}</p>
+                          <p className="font-medium text-sm">{bonus.reason_bonus}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {formatDate(bonus.created_at)}
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-lg text-amber-500">+{bonus.amount} FCFA</p>
+                        <p className="font-semibold text-sm sm:text-base text-amber-500">
+                          +{bonus.amount} FCFA
+                        </p>
                       </div>
                     </div>
                   </div>

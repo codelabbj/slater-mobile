@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Check, Plus, Pencil, Trash } from "lucide-react"
+import { TransactionProgressBar } from "@/components/ui/transaction-progress-bar"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -550,7 +551,7 @@ function WithdrawContent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen gradient-background mobile-safe-touch">
       {/* Mobile Header */}
       <header className="bg-background border-b sticky top-0 z-50 safe-area-top">
         <div className="px-4 py-3">
@@ -564,10 +565,12 @@ function WithdrawContent() {
             </div>
           </div>
           
-          {/* Progress Bar */}
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-primary transition-all duration-300" style={{ width: `${(step / 5) * 100}%` }} />
-          </div>
+          {/* Modern Progress Bar */}
+          <TransactionProgressBar
+            currentStep={step}
+            totalSteps={5}
+            type="withdrawal"
+          />
         </div>
       </header>
 
@@ -575,7 +578,7 @@ function WithdrawContent() {
       <main className="px-4 py-4 space-y-4">
         {/* Step 1: Select Platform */}
         {step === 1 && (
-          <Card>
+          <Card className="floating-card border-0 shadow-lg animate-scale-in">
             <CardHeader>
               <CardTitle>{t("selectPlatform")}</CardTitle>
               <CardDescription>Choisissez votre plateforme de paris</CardDescription>
@@ -584,7 +587,7 @@ function WithdrawContent() {
               {loadingPlatforms ? (
                 <div className="text-center py-8">{t("loading")}</div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   {platforms?.map((platform) => (
                     <div
                       key={platform.id}
@@ -592,24 +595,24 @@ function WithdrawContent() {
                         setSelectedPlatform(platform)
                         setTimeout(() => setStep(2), 100)
                       }}
-                      className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      className={`group relative p-3 sm:p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${
                         selectedPlatform?.id === platform.id
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:border-primary/50"
+                          ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
+                          : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
                       }`}
                     >
                       {selectedPlatform?.id === platform.id && (
-                        <div className="absolute top-2 right-2 bg-primary rounded-full p-1">
+                        <div className="absolute top-2 right-2 bg-primary rounded-full p-1 shadow-sm shadow-primary/40">
                           <Check className="h-3 w-3 text-white" />
                         </div>
                       )}
                       <img
                         src={platform.image || "/placeholder.svg"}
                         alt={platform.name}
-                        className="w-full h-16 object-contain mb-2"
+                        className="w-full h-16 object-contain mb-2 transition-transform duration-200 group-hover:scale-105"
                       />
-                      <p className="text-center font-medium text-sm">{platform.name}</p>
-                      <p className="text-center text-xs text-muted-foreground mt-1">
+                      <p className="text-center font-semibold text-sm">{platform.name}</p>
+                      <p className="text-center text-[11px] sm:text-xs text-muted-foreground mt-1">
                         {platform.minimun_with} - {platform.max_win} FCFA
                       </p>
                     </div>
@@ -622,7 +625,7 @@ function WithdrawContent() {
 
         {/* Step 2: Select Bet ID */}
         {step === 2 && (
-          <Card>
+          <Card className="floating-card border-0 shadow-lg animate-scale-in">
             <CardHeader>
               <CardTitle>{t("selectBetId")}</CardTitle>
               <CardDescription>Choisissez votre identifiant de pari</CardDescription>
@@ -640,16 +643,16 @@ function WithdrawContent() {
                           setSelectedBetId(betId)
                           setTimeout(() => setStep(3), 100)
                         }}
-                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${
                           selectedBetId?.id === betId.id
-                            ? "border-primary bg-primary/10"
-                            : "border-border hover:border-primary/50"
+                            ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
+                            : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{betId.user_app_id}</p>
-                            <p className="text-sm text-muted-foreground">ID de pari</p>
+                          <div className="space-y-0.5">
+                            <p className="text-sm font-semibold">{betId.user_app_id}</p>
+                            <p className="text-xs text-muted-foreground">ID de pari</p>
                           </div>
                           <div className="flex items-center gap-1">
                             {selectedBetId?.id === betId.id && (
@@ -707,7 +710,7 @@ function WithdrawContent() {
 
         {/* Step 3: Select Network */}
         {step === 3 && (
-          <Card>
+          <Card className="floating-card border-0 shadow-lg animate-scale-in">
             <CardHeader>
               <CardTitle>{t("selectNetwork")}</CardTitle>
               <CardDescription>Choisissez votre réseau de paiement</CardDescription>
@@ -716,7 +719,7 @@ function WithdrawContent() {
               {loadingNetworks ? (
                 <div className="text-center py-8">{t("loading")}</div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   {networks?.map((network) => (
                     <div
                       key={network.id}
@@ -724,23 +727,23 @@ function WithdrawContent() {
                         setSelectedNetwork(network)
                         setTimeout(() => setStep(4), 100)
                       }}
-                      className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      className={`group relative p-3 sm:p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${
                         selectedNetwork?.id === network.id
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:border-primary/50"
+                          ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
+                          : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
                       }`}
                     >
                       {selectedNetwork?.id === network.id && (
-                        <div className="absolute top-2 right-2 bg-primary rounded-full p-1">
+                        <div className="absolute top-2 right-2 bg-primary rounded-full p-1 shadow-sm shadow-primary/40">
                           <Check className="h-3 w-3 text-white" />
                         </div>
                       )}
                       <img
                         src={network.image || "/placeholder.svg"}
                         alt={network.name}
-                        className="w-full h-16 object-contain mb-2"
+                        className="w-full h-16 object-contain mb-2 transition-transform duration-200 group-hover:scale-105"
                       />
-                      <p className="text-center font-medium text-sm">{network.public_name}</p>
+                      <p className="text-center font-semibold text-sm">{network.public_name}</p>
                     </div>
                   ))}
                 </div>
@@ -751,7 +754,7 @@ function WithdrawContent() {
 
         {/* Step 4: Select Phone */}
         {step === 4 && (
-          <Card>
+          <Card className="floating-card border-0 shadow-lg animate-scale-in">
             <CardHeader>
               <CardTitle>{t("selectPhone")}</CardTitle>
               <CardDescription>Choisissez votre numéro de téléphone</CardDescription>
@@ -770,16 +773,16 @@ function WithdrawContent() {
                             setSelectedPhone(phone)
                             setTimeout(() => setStep(5), 100)
                           }}
-                          className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${
                             selectedPhone?.id === phone.id
-                              ? "border-primary bg-primary/10"
-                              : "border-border hover:border-primary/50"
+                              ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
+                              : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium">{phone.phone}</p>
-                              <p className="text-sm text-muted-foreground">Numéro de téléphone</p>
+                            <div className="space-y-0.5">
+                              <p className="text-sm font-semibold">{phone.phone}</p>
+                              <p className="text-xs text-muted-foreground">Numéro de téléphone</p>
                             </div>
                           <div className="flex items-center gap-1">
                             {selectedPhone?.id === phone.id && (
@@ -845,7 +848,7 @@ function WithdrawContent() {
 
         {/* Step 5: Enter Amount and Withdrawal Code */}
         {step === 5 && (
-          <Card className="mobile-card">
+          <Card className="floating-card">
             <CardHeader>
               <CardTitle className="mobile-heading">{t("enterAmount")}</CardTitle>
               <CardDescription className="mobile-text">
@@ -861,7 +864,7 @@ function WithdrawContent() {
                   placeholder="1000"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="mobile-input text-lg"
+                  className="mobile-form-input text-lg"
                 />
               </div>
 
@@ -873,7 +876,7 @@ function WithdrawContent() {
                   placeholder="1234"
                   value={withdrawalCode}
                   onChange={(e) => setWithdrawalCode(e.target.value)}
-                  className="mobile-input text-lg"
+                  className="mobile-form-input text-lg"
                 />
                 <p className="mobile-text text-muted-foreground">
                   Entrez le code de retrait fourni par votre plateforme de paris

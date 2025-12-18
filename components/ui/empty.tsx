@@ -94,6 +94,48 @@ function EmptyContent({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+function EmptyState({
+  icon,
+  title,
+  description,
+  actions,
+  className,
+}: {
+  icon?: React.ReactNode
+  title: string
+  description?: string
+  actions?: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center gap-8 rounded-3xl glass-panel border border-primary/10 p-8 text-center animate-scale-in',
+        className,
+      )}
+    >
+      {icon && (
+        <div className="flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-primary/10 to-primary/20 animate-float">
+          {icon}
+        </div>
+      )}
+      <div className="space-y-3">
+        <div className="text-xl font-bold text-foreground">{title}</div>
+        {description && (
+          <div className="text-muted-foreground text-base leading-relaxed max-w-sm">
+            {description}
+          </div>
+        )}
+      </div>
+      {actions && (
+        <div className="flex flex-col sm:flex-row gap-3">
+          {actions}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export {
   Empty,
   EmptyHeader,
@@ -101,4 +143,5 @@ export {
   EmptyDescription,
   EmptyContent,
   EmptyMedia,
+  EmptyState,
 }

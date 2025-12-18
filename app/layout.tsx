@@ -10,7 +10,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TURAINCASH - Dépôt et Retrait",
+  title: "Slater - Dépôt et Retrait",
   description: "Application de gestion de dépôts et retraits pour paris sportifs",
 
   viewport: {
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "TURAINCASH",
+    title: "Slater",
   },
   formatDetection: {
     telephone: false,

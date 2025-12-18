@@ -246,7 +246,7 @@ export function UpdateCheck() {
     setMounted(true);
     const currentVersion = getCurrentVersion();
 
-    fetch("https://turnaicash-mobile-app-1.vercel.app/releases/manifest.json")
+    fetch("https://slaterci-mobile-app.vercel.app/releases/manifest.json")
       .then(r => r.json())
       .then(manifest => {
         const manifestVersion = manifest.android_version;

@@ -2,7 +2,7 @@ import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
 export async function checkForUpdates() {
   try {
-    const response = await fetch('https://turnaicash-mobile-app-1.vercel.app/releases/manifest.json');
+    const response = await fetch('https://slaterci-mobile-app.vercel.app/releases/manifest.json');
     const manifest = await response.json();
 
     const localVersion = localStorage.getItem('app_version') || '0.0.0';

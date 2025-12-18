@@ -72,20 +72,20 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-muted/30">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center p-4 gradient-background mobile-safe-touch">
+      <Card className="floating-card w-full max-w-md animate-scale-in">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-2">
             <Image
-              src="/Turaincash-logo.png"
-              alt="TurainCash Logo"
+              src="/Slater-logo.png"
+              alt="Slater Logo"
               width={120}
               height={120}
-              className="object-contain"
+              className="object-contain animate-float"
               priority
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-center">TURAINCASH</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Slater</CardTitle>
           <CardDescription className="text-center">{t("register")}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -96,7 +96,8 @@ export default function RegisterPage() {
                 <Input
                   id="first_name"
                   type="text"
-                  placeholder="John"
+                  placeholder="Entrez votre prénom"
+                  className="mobile-form-input"
                   {...register("first_name")}
                   disabled={isLoading}
                 />
@@ -105,7 +106,14 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="last_name">{t("lastName")}</Label>
-                <Input id="last_name" type="text" placeholder="Doe" {...register("last_name")} disabled={isLoading} />
+                <Input
+                  id="last_name"
+                  type="text"
+                  placeholder="Entrez votre nom"
+                  className="mobile-form-input"
+                  {...register("last_name")}
+                  disabled={isLoading}
+                />
                 {errors.last_name && <p className="text-sm text-destructive">{errors.last_name.message}</p>}
               </div>
             </div>
@@ -115,7 +123,8 @@ export default function RegisterPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="Entrez votre adresse e-mail"
+                className="mobile-form-input"
                 {...register("email")}
                 disabled={isLoading}
               />
@@ -124,7 +133,14 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="phone">{t("phone")}</Label>
-              <Input id="phone" type="tel" placeholder="2250700000000" {...register("phone")} disabled={isLoading} />
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="Entrez votre numéro de téléphone"
+                className="mobile-form-input"
+                {...register("phone")}
+                disabled={isLoading}
+              />
               {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
             </div>
 
@@ -134,8 +150,8 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="pr-10"
+                  placeholder="Créez un mot de passe"
+                  className="mobile-form-input pr-10"
                   {...register("password")}
                   disabled={isLoading}
                 />
@@ -163,8 +179,8 @@ export default function RegisterPage() {
                 <Input
                   id="re_password"
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="pr-10"
+                  placeholder="Confirmez votre mot de passe"
+                  className="mobile-form-input pr-10"
                   {...register("re_password")}
                   disabled={isLoading}
                 />
@@ -193,6 +209,7 @@ export default function RegisterPage() {
                   id="referral_code"
                   type="text"
                   placeholder="Entrez un code de parrainage"
+                  className="mobile-form-input"
                   {...register("referral_code")}
                   disabled={isLoading || settingsLoading}
                 />
@@ -200,7 +217,7 @@ export default function RegisterPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isLoading || settingsLoading}>
+            <Button type="submit" variant="glow" className="w-full mobile-btn-enhanced" disabled={isLoading || settingsLoading}>
               {isLoading ? t("loading") : t("registerButton")}
             </Button>
           </form>
