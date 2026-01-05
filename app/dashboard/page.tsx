@@ -306,59 +306,61 @@ function DashboardContent() {
                 </p>
               </div>
 
-              {/* Referral & Bonus Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-6">
-                {/* Referral Code Card */}
-                <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">
-                          <Gift className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs sm:text-sm text-muted-foreground">Code de parrainage</p>
-                          <p className="text-sm sm:text-base font-mono font-semibold text-foreground truncate">
-                            {user?.referral_code || "SLATER123"}
-                          </p>
-                        </div>
-                      </div>
-                      <Button className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 rounded-lg hover:bg-primary/10">
-                        <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Bonus Card */}
-                {referralBonusEnabled && user && user.bonus_available > 0 && (
+              {/* Referral & Bonus Cards - Only show if referral bonus is enabled */}
+              {referralBonusEnabled && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-6">
+                  {/* Referral Code Card */}
                   <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">
-                            <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                            <Gift className="h-4 w-4 sm:h-5 sm:w-5" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs sm:text-sm text-muted-foreground">Bonus disponible</p>
-                            <p className="text-sm sm:text-base font-semibold text-foreground">
-                              {user.bonus_available.toLocaleString()} FCFA
+                            <p className="text-xs sm:text-sm text-muted-foreground">Code de parrainage</p>
+                            <p className="text-sm sm:text-base font-mono font-semibold text-foreground truncate">
+                              {user?.referral_code || "SLATER123"}
                             </p>
                           </div>
                         </div>
-                        <Button
-                          variant="outline-glow"
-                          size="sm"
-                          className="h-8 px-3"
-                          onClick={() => router.push("/bonus")}
-                        >
-                          Utiliser
+                        <Button className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 rounded-lg hover:bg-primary/10">
+                          <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
-                )}
-              </div>
+
+                  {/* Bonus Card */}
+                  {user && user.bonus_available > 0 && (
+                    <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">
+                              <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs sm:text-sm text-muted-foreground">Bonus disponible</p>
+                              <p className="text-sm sm:text-base font-semibold text-foreground">
+                                {user.bonus_available.toLocaleString()} FCFA
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline-glow"
+                            size="sm"
+                            className="h-8 px-3"
+                            onClick={() => router.push("/bonus")}
+                          >
+                            Utiliser
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
 
               {/* Primary Action Buttons */}
               <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-6">

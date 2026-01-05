@@ -4,18 +4,29 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { isAuthenticated } from "@/lib/auth"
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push("/login")
-    } else {
-      setIsChecking(false)
+    const checkAuthentication = async () => {
+      try {
+        const { isAuthenticated } = await import("@/lib/auth")
+        const authenticated = await isAuthenticated()
+
+        if (!authenticated) {
+          router.push("/login")
+        } else {
+          setIsChecking(false)
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error)
+        router.push("/login")
+      }
     }
+
+    checkAuthentication()
   }, [router])
 
   if (isChecking) {

@@ -1,15 +1,20 @@
 import axios from "axios"
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL || "https://api.turaincash.com",
+  baseURL: process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net",
 })
 
 // Request interceptor to add auth token
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("access_token")
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    try {
+      const { getAccessToken } = await import('./auth')
+      const token = await getAccessToken()
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    } catch (error) {
+      console.error('Error getting access token for request:', error)
     }
   }
   return config
@@ -27,40 +32,55 @@ api.interceptors.response.use(
 
       if (typeof window !== "undefined") {
         try {
-          const refresh = localStorage.getItem("refresh_token")
+          const { PersistentStorage } = await import('./storage')
+          const refresh = await PersistentStorage.get("refresh_token")
           if (!refresh) {
             throw new Error("No refresh token")
           }
 
           const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.turaincash.com"}/auth/refresh`,
+            `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"}/auth/refresh`,
             { refresh },
           )
 
           const newToken = res.data.access
-          localStorage.setItem("access_token", newToken)
+          await PersistentStorage.set("access_token", newToken)
           original.headers.Authorization = `Bearer ${newToken}`
 
           return api(original)
         } catch (refreshError) {
           // Clear tokens and redirect to login
-          localStorage.clear()
-          window.location.href = "/login"
+          const { PersistentStorage } = await import('./storage')
+          await PersistentStorage.clear()
+          if (typeof window !== "undefined") {
+            window.location.href = "/login"
+          }
           return Promise.reject(refreshError)
         }
       }
     }
 
-    // Extract error message from backend response
-    // Check for 'details' first (plural), then 'detail' (singular), then other fields
-    const backendMsg =
-      error.response?.data?.details ||
-      error.response?.data?.detail ||
-      error.response?.data?.error ||
-      error.response?.data?.message ||
-      (typeof error.response?.data === "string" ? error.response.data : "Une erreur est survenue. Veuillez réessayer.")
+    // Handle specific HTTP status codes with default French messages
+    let errorMessage = ""
 
-    return Promise.reject({ message: backendMsg, originalError: error })
+    if (error.response?.status === 404) {
+      errorMessage = "Ressource non trouvée. Veuillez vérifier l'URL ou contacter le support."
+    } else if (error.response?.status >= 500) {
+      errorMessage = "Erreur du serveur. Veuillez réessayer plus tard ou contacter le support."
+    } else if (!error.response) {
+      // Network error or no response
+      errorMessage = "Erreur de connexion. Veuillez vérifier votre connexion internet et réessayer."
+    } else {
+      // For other status codes, try to extract message from backend response
+      errorMessage =
+        error.response?.data?.details ||
+        error.response?.data?.detail ||
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        (typeof error.response?.data === "string" ? error.response.data : "Une erreur est survenue. Veuillez réessayer.")
+    }
+
+    return Promise.reject({ message: errorMessage, originalError: error })
   },
 )
 

@@ -1,3 +1,5 @@
+import { PersistentStorage } from './storage'
+
 export interface User {
   id: string
   first_name: string
@@ -27,17 +29,19 @@ export interface AuthResponse {
   data: User
 }
 
-export const saveAuthData = (authData: AuthResponse) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("access_token", authData.access)
-    localStorage.setItem("refresh_token", authData.refresh)
-    localStorage.setItem("user", JSON.stringify(authData.data))
+export const saveAuthData = async (authData: AuthResponse) => {
+  try {
+    await PersistentStorage.set("access_token", authData.access)
+    await PersistentStorage.set("refresh_token", authData.refresh)
+    await PersistentStorage.set("user", JSON.stringify(authData.data))
+  } catch (error) {
+    console.error('Error saving auth data:', error)
   }
 }
 
-export const getUser = (): User | null => {
-  if (typeof window !== "undefined") {
-    const userStr = localStorage.getItem("user")
+export const getUser = async (): Promise<User | null> => {
+  try {
+    const userStr = await PersistentStorage.get("user")
     if (userStr) {
       try {
         return JSON.parse(userStr)
@@ -45,24 +49,37 @@ export const getUser = (): User | null => {
         return null
       }
     }
+  } catch (error) {
+    console.error('Error getting user:', error)
   }
   return null
 }
 
-export const getAccessToken = (): string | null => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("access_token")
+export const getAccessToken = async (): Promise<string | null> => {
+  try {
+    return await PersistentStorage.get("access_token")
+  } catch (error) {
+    console.error('Error getting access token:', error)
+    return null
   }
-  return null
 }
 
-export const isAuthenticated = (): boolean => {
-  return !!getAccessToken()
+export const isAuthenticated = async (): Promise<boolean> => {
+  const token = await getAccessToken()
+  return !!token
 }
 
-export const logout = () => {
-  if (typeof window !== "undefined") {
-    localStorage.clear()
-    window.location.href = "/login"
+export const logout = async () => {
+  try {
+    await PersistentStorage.clear()
+    if (typeof window !== "undefined") {
+      window.location.href = "/login"
+    }
+  } catch (error) {
+    console.error('Error during logout:', error)
+    // Fallback
+    if (typeof window !== "undefined") {
+      window.location.href = "/login"
+    }
   }
 }

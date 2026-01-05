@@ -1,0 +1,42 @@
+warning: in the working copy of 'lib/api.ts', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/lib/api.ts b/lib/api.ts[m
+[1mindex 04e7c14..3b7b968 100644[m
+[1m--- a/lib/api.ts[m
+[1m+++ b/lib/api.ts[m
+[36m@@ -51,16 +51,27 @@[m [mapi.interceptors.response.use([m
+       }[m
+     }[m
+ [m
+[31m-    // Extract error message from backend response[m
+[31m-    // Check for 'details' first (plural), then 'detail' (singular), then other fields[m
+[31m-    const backendMsg =[m
+[31m-      error.response?.data?.details ||[m
+[31m-      error.response?.data?.detail ||[m
+[31m-      error.response?.data?.error ||[m
+[31m-      error.response?.data?.message ||[m
+[31m-      (typeof error.response?.data === "string" ? error.response.data : "Une erreur est survenue. Veuillez réessayer.")[m
+[32m+[m[32m    // Handle specific HTTP status codes with default French messages[m
+[32m+[m[32m    let errorMessage = ""[m
+ [m
+[31m-    return Promise.reject({ message: backendMsg, originalError: error })[m
+[32m+[m[32m    if (error.response?.status === 404) {[m
+[32m+[m[32m      errorMessage = "Ressource non trouvée. Veuillez vérifier l'URL ou contacter le support."[m
+[32m+[m[32m    } else if (error.response?.status >= 500) {[m
+[32m+[m[32m      errorMessage = "Erreur du serveur. Veuillez réessayer plus tard ou contacter le support."[m
+[32m+[m[32m    } else if (!error.response) {[m
+[32m+[m[32m      // Network error or no response[m
+[32m+[m[32m      errorMessage = "Erreur de connexion. Veuillez vérifier votre connexion internet et réessayer."[m
+[32m+[m[32m    } else {[m
+[32m+[m[32m      // For other status codes, try to extract message from backend response[m
+[32m+[m[32m      errorMessage =[m
+[32m+[m[32m        error.response?.data?.details ||[m
+[32m+[m[32m        error.response?.data?.detail ||[m
+[32m+[m[32m        error.response?.data?.error ||[m
+[32m+[m[32m        error.response?.data?.message ||[m
+[32m+[m[32m        (typeof error.response?.data === "string" ? error.response.data : "Une erreur est survenue. Veuillez réessayer.")[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    return Promise.reject({ message: errorMessage, originalError: error })[m
+   },[m
+ )[m
+ [m
