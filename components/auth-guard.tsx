@@ -2,42 +2,34 @@
 
 import type React from "react"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [isChecking, setIsChecking] = useState(true)
 
-  const checkAuthentication = useCallback(async () => {
-    try {
-      const { ensureValidToken } = await import("@/lib/auth")
-      const tokenValid = await ensureValidToken()
-
-      if (!tokenValid) {
-        console.log('No access token found, redirecting to login')
-        router.push("/login")
-        return false
-      }
-
-      return true
-    } catch (error) {
-      console.error('Error checking authentication:', error)
-      router.push("/login")
-      return false
-    }
-  }, [router])
-
   useEffect(() => {
-    const initialCheck = async () => {
-      const isValid = await checkAuthentication()
-      if (isValid) {
+    const checkAuthentication = async () => {
+      try {
+        const { getAccessToken } = await import("@/lib/auth")
+        const token = await getAccessToken()
+
+        if (!token) {
+          console.log('No access token found, redirecting to login')
+          router.push("/login")
+          return
+        }
+
         setIsChecking(false)
+      } catch (error) {
+        console.error('Error checking authentication:', error)
+        router.push("/login")
       }
     }
 
-    initialCheck()
-  }, [checkAuthentication])
+    checkAuthentication()
+  }, [router])
 
   if (isChecking) {
     return (
