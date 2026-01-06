@@ -5,14 +5,30 @@ export class PersistentStorage {
    * Set a value in persistent storage
    */
   static async set(key: string, value: string): Promise<void> {
-    try {
-      await Preferences.set({
-        key,
-        value,
-      })
-    } catch (error) {
-      console.error('Error setting persistent storage:', error)
-      // Fallback to localStorage for web development
+    const { Capacitor } = await import('@capacitor/core')
+
+    if (Capacitor.isNativePlatform()) {
+      // On native platforms, use Capacitor Preferences with retry
+      let attempts = 0
+      const maxAttempts = 3
+
+      while (attempts < maxAttempts) {
+        try {
+          await Preferences.set({ key, value })
+          return
+        } catch (error) {
+          attempts++
+          console.warn(`Preferences.set attempt ${attempts} failed:`, error)
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100))
+          }
+        }
+      }
+
+      // If all Capacitor attempts fail, throw error
+      throw new Error(`Failed to set ${key} in Capacitor Preferences after ${maxAttempts} attempts`)
+    } else {
+      // On web, use localStorage
       if (typeof window !== 'undefined') {
         localStorage.setItem(key, value)
       }
@@ -23,12 +39,31 @@ export class PersistentStorage {
    * Get a value from persistent storage
    */
   static async get(key: string): Promise<string | null> {
-    try {
-      const result = await Preferences.get({ key })
-      return result.value || null
-    } catch (error) {
-      console.error('Error getting persistent storage:', error)
-      // Fallback to localStorage for web development
+    const { Capacitor } = await import('@capacitor/core')
+
+    if (Capacitor.isNativePlatform()) {
+      // On native platforms, use Capacitor Preferences with retry
+      let attempts = 0
+      const maxAttempts = 3
+
+      while (attempts < maxAttempts) {
+        try {
+          const result = await Preferences.get({ key })
+          return result.value || null
+        } catch (error) {
+          attempts++
+          console.warn(`Preferences.get attempt ${attempts} failed:`, error)
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100))
+          }
+        }
+      }
+
+      // If all Capacitor attempts fail, return null
+      console.warn(`Failed to get ${key} from Capacitor Preferences after ${maxAttempts} attempts`)
+      return null
+    } else {
+      // On web, use localStorage
       if (typeof window !== 'undefined') {
         return localStorage.getItem(key)
       }

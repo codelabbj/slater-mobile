@@ -167,36 +167,78 @@ export const ensureValidToken = async (): Promise<boolean> => {
 }
 
 export const refreshAccessToken = async (): Promise<string | null> => {
+  const { Capacitor } = await import('@capacitor/core')
+
   try {
     const refreshToken = await PersistentStorage.get("refresh_token")
     if (!refreshToken) {
-      throw new Error("No refresh token available")
+      console.log('refreshAccessToken: No refresh token available')
+      return null
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"}/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ refresh: refreshToken }),
-    })
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"
+    const refreshUrl = `${baseUrl}/auth/refresh`
 
-    if (!response.ok) {
-      throw new Error(`Token refresh failed: ${response.status}`)
+    console.log('refreshAccessToken: Attempting to refresh token...')
+
+    // On mobile, add timeout and retry logic
+    let attempts = 0
+    const maxAttempts = Capacitor.isNativePlatform() ? 2 : 1
+
+    while (attempts < maxAttempts) {
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+        const response = await fetch(refreshUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refresh: refreshToken }),
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error')
+          throw new Error(`Token refresh failed: ${response.status} - ${errorText}`)
+        }
+
+        const data = await response.json()
+        const newAccessToken = data.access
+
+        if (!newAccessToken) {
+          throw new Error('No access token in refresh response')
+        }
+
+        // Save the new access token
+        await PersistentStorage.set("access_token", newAccessToken)
+
+        console.log('refreshAccessToken: Access token refreshed successfully')
+        return newAccessToken
+
+      } catch (fetchError) {
+        attempts++
+        console.warn(`refreshAccessToken: Attempt ${attempts} failed:`, fetchError)
+
+        if (attempts < maxAttempts) {
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        } else {
+          // All attempts failed
+          throw fetchError
+        }
+      }
     }
 
-    const data = await response.json()
-    const newAccessToken = data.access
-
-    // Save the new access token
-    await PersistentStorage.set("access_token", newAccessToken)
-
-    console.log('Access token refreshed successfully')
-    return newAccessToken
   } catch (error) {
-    console.error('Error refreshing access token:', error)
+    console.error('refreshAccessToken: Error refreshing access token:', error)
     return null
   }
+
+  return null
 }
 
 export const logout = async () => {
