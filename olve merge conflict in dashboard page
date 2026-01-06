@@ -1,0 +1,157 @@
+[1mdiff --cc app/dashboard/page.tsx[m
+[1mindex 76ce8ed,6fae216..0000000[m
+[1m--- a/app/dashboard/page.tsx[m
+[1m+++ b/app/dashboard/page.tsx[m
+[36m@@@ -359,64 -306,61 +359,59 @@@[m [mfunction DashboardContent() [m
+                  </p>[m
+                </div>[m
+  [m
+[31m-               {/* Advertisement Section - Exact Specifications */}[m
+[31m-               <div className="w-full mt-6">[m
+[31m-                 {advertisements && advertisements.length > 0 ? ([m
+[31m-                   <Card className="overflow-hidden border border-primary/20 glass-panel p-0 py-0 rounded-2xl sm:rounded-3xl">[m
+[31m-                     <CardContent className="p-0">[m
+[31m-                       <Carousel[m
+[31m-                         opts={{[m
+[31m-                           align: "start",[m
+[31m-                           loop: true,[m
+[31m-                         }}[m
+[31m-                         className="w-full"[m
+[31m-                         onTouchStart={() => setIsCarouselPaused(true)}[m
+[31m-                         onTouchEnd={() => setIsCarouselPaused(false)}[m
+[31m-                       >[m
+[31m-                         <CarouselContent>[m
+[31m-                           {advertisements.map((ad, index) => ([m
+[31m-                             <CarouselItem key={index}>[m
+[31m-                               <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48">[m
+[31m-                                 {!adImageErrors.has(index) ? ([m
+[31m-                                   <img[m
+[31m-                                     src={ad.image}[m
+[31m-                                     alt={ad.title || "Publicité"}[m
+[31m-                                     className="object-cover cursor-pointer transition-transform duration-300 hover:scale-105 w-full h-full"[m
+[31m-                                     onClick={() => {[m
+[31m-                                       if (ad.link) {[m
+[31m-                                         window.open(ad.link, "_blank", "noopener,noreferrer")[m
+[31m-                                       }[m
+[31m-                                     }}[m
+[31m-                                     onError={() => handleImageError(index)}[m
+[31m-                                   />[m
+[31m-                                 ) : ([m
+[31m-                                   <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48 bg-muted/20 flex items-center justify-center">[m
+[31m-                                     <div className="text-center p-4 text-muted-foreground">[m
+[31m-                                       <p className="text-sm sm:text-base font-semibold text-foreground/80">Espace publicitaire</p>[m
+[31m-                                       <p className="text-xs text-muted-foreground mt-1">Vos campagnes apparaîtront ici</p>[m
+[31m-                                     </div>[m
+[31m-                                   </div>[m
+[31m-                                 )}[m
+[31m-                               </div>[m
+[31m-                             </CarouselItem>[m
+[31m-                           ))}[m
+[31m-                         </CarouselContent>[m
+[31m-                       </Carousel>[m
+[31m-                     </CardContent>[m
+[31m-                   </Card>[m
+[31m-                 ) : ([m
+[31m-                   <Card className="overflow-hidden border border-primary/20 glass-panel p-0 py-0 rounded-2xl sm:rounded-3xl">[m
+[31m-                     <CardContent className="p-0">[m
+[31m-                     <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48 bg-muted/20 flex items-center justify-center rounded-2xl sm:rounded-3xl">[m
+[31m-                       <div className="text-center p-4 text-muted-foreground">[m
+[31m-                         <p className="text-sm sm:text-base font-semibold text-foreground/80">Espace publicitaire</p>[m
+[31m-                         <p className="text-xs text-muted-foreground mt-1">Vos campagnes apparaîtront ici</p>[m
+[31m -              {/* Referral & Bonus Cards - Only show if referral bonus is enabled */}[m
+[31m -              {referralBonusEnabled && ([m
+[31m -                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-6">[m
+[31m -                  {/* Referral Code Card */}[m
+[32m++              {/* Referral & Bonus Cards */}[m
+[32m++              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-6">[m
+[32m++                {/* Referral Code Card */}[m
+[32m++                <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">[m
+[32m++                  <CardContent className="p-3 sm:p-4">[m
+[32m++                    <div className="flex items-center justify-between">[m
+[32m++                      <div className="flex items-center gap-3 min-w-0">[m
+[32m++                        <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">[m
+[32m++                          <Gift className="h-4 w-4 sm:h-5 sm:w-5" />[m
+[32m++                        </div>[m
+[32m++                        <div className="min-w-0">[m
+[32m++                          <p className="text-xs sm:text-sm text-muted-foreground">Code de parrainage</p>[m
+[32m++                          <p className="text-sm sm:text-base font-mono font-semibold text-foreground truncate">[m
+[32m++                            {user?.referral_code || "SLATER123"}[m
+[32m++                          </p>[m
+[32m++                        </div>[m
+[32m +                      </div>[m
+[32m++                      <Button className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 rounded-lg hover:bg-primary/10">[m
+[32m++                        <Copy className="h-3 w-3 sm:h-4 sm:w-4" />[m
+[32m++                      </Button>[m
+[32m +                    </div>[m
+[32m++                  </CardContent>[m
+[32m++                </Card>[m
+[32m++[m
+[32m++                {/* Bonus Card */}[m
+[32m++                {referralBonusEnabled && user && user.bonus_available > 0 && ([m
+[32m+                   <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">[m
+[32m+                     <CardContent className="p-3 sm:p-4">[m
+[32m+                       <div className="flex items-center justify-between">[m
+[32m+                         <div className="flex items-center gap-3 min-w-0">[m
+[32m+                           <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">[m
+[31m -                            <Gift className="h-4 w-4 sm:h-5 sm:w-5" />[m
+[32m++                            <Coins className="h-4 w-4 sm:h-5 sm:w-5" />[m
+[32m+                           </div>[m
+[32m+                           <div className="min-w-0">[m
+[31m -                            <p className="text-xs sm:text-sm text-muted-foreground">Code de parrainage</p>[m
+[31m -                            <p className="text-sm sm:text-base font-mono font-semibold text-foreground truncate">[m
+[31m -                              {user?.referral_code || "SLATER123"}[m
+[32m++                            <p className="text-xs sm:text-sm text-muted-foreground">Bonus disponible</p>[m
+[32m++                            <p className="text-sm sm:text-base font-semibold text-foreground">[m
+[32m++                              {user.bonus_available.toLocaleString()} FCFA[m
+[32m+                             </p>[m
+[32m+                           </div>[m
+[32m+                         </div>[m
+[31m -                        <Button className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 rounded-lg hover:bg-primary/10">[m
+[31m -                          <Copy className="h-3 w-3 sm:h-4 sm:w-4" />[m
+[32m++                        <Button[m
+[32m++                          variant="outline-glow"[m
+[32m++                          size="sm"[m
+[32m++                          className="h-8 px-3"[m
+[32m++                          onClick={() => router.push("/bonus")}[m
+[32m++                        >[m
+[32m++                          Utiliser[m
+[32m+                         </Button>[m
+[32m+                       </div>[m
+                      </CardContent>[m
+                    </Card>[m
+[31m -[m
+[31m -                  {/* Bonus Card */}[m
+[31m -                  {user && user.bonus_available > 0 && ([m
+[31m -                    <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">[m
+[31m -                      <CardContent className="p-3 sm:p-4">[m
+[31m -                        <div className="flex items-center justify-between">[m
+[31m -                          <div className="flex items-center gap-3 min-w-0">[m
+[31m -                            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">[m
+[31m -                              <Coins className="h-4 w-4 sm:h-5 sm:w-5" />[m
+[31m -                            </div>[m
+[31m -                            <div className="min-w-0">[m
+[31m -                              <p className="text-xs sm:text-sm text-muted-foreground">Bonus disponible</p>[m
+[31m -                              <p className="text-sm sm:text-base font-semibold text-foreground">[m
+[31m -                                {user.bonus_available.toLocaleString()} FCFA[m
+[31m -                              </p>[m
+[31m -                            </div>[m
+[31m -                          </div>[m
+[31m -                          <Button[m
+[31m -                            variant="outline-glow"[m
+[31m -                            size="sm"[m
+[31m -                            className="h-8 px-3"[m
+[31m -                            onClick={() => router.push("/bonus")}[m
+[31m -                          >[m
+[31m -                            Utiliser[m
+[31m -                          </Button>[m
+[31m -                        </div>[m
+[31m -                      </CardContent>[m
+[31m -                    </Card>[m
+[31m -                  )}[m
+[31m -                </div>[m
+[31m -              )}[m
+[32m +                )}[m
+[32m +              </div>[m
+  [m
+                {/* Primary Action Buttons */}[m
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-6">[m

@@ -58,15 +58,16 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       const response = await api.post<AuthResponse>("/auth/login", data)
-      saveAuthData(response.data)
-      
+      await saveAuthData(response.data)
+
       // Save remember me preference
+      const { PersistentStorage } = await import('@/lib/storage')
       if (rememberMe && typeof window !== "undefined") {
-        localStorage.setItem("remember_me", "true")
-        localStorage.setItem("remembered_email", data.email_or_phone)
+        await PersistentStorage.set("remember_me", "true")
+        await PersistentStorage.set("remembered_email", data.email_or_phone)
       } else if (typeof window !== "undefined") {
-        localStorage.removeItem("remember_me")
-        localStorage.removeItem("remembered_email")
+        await PersistentStorage.remove("remember_me")
+        await PersistentStorage.remove("remembered_email")
       }
       
       toast.success("Connexion réussie!")
@@ -98,14 +99,23 @@ export default function LoginPage() {
 
   // Load remembered email on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const remembered = localStorage.getItem("remember_me")
-      const rememberedEmail = localStorage.getItem("remembered_email")
-      if (remembered === "true" && rememberedEmail) {
-        setRememberMe(true)
-        // You can set the form value here if needed
+    const loadRememberedCredentials = async () => {
+      if (typeof window !== "undefined") {
+        try {
+          const { PersistentStorage } = await import('@/lib/storage')
+          const remembered = await PersistentStorage.get("remember_me")
+          const rememberedEmail = await PersistentStorage.get("remembered_email")
+          if (remembered === "true" && rememberedEmail) {
+            setRememberMe(true)
+            // You can set the form value here if needed
+          }
+        } catch (error) {
+          console.error('Error loading remembered credentials:', error)
+        }
       }
     }
+
+    loadRememberedCredentials()
   }, [])
 
   // Step 1: Send OTP
