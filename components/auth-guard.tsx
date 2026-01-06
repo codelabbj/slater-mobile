@@ -15,7 +15,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       const tokenValid = await ensureValidToken()
 
       if (!tokenValid) {
-        console.log('Authentication check failed, redirecting to login')
+        console.log('No access token found, redirecting to login')
         router.push("/login")
         return false
       }
@@ -37,44 +37,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     initialCheck()
-
-    // Set up periodic authentication checks every 5 minutes
-    const intervalId = setInterval(async () => {
-      console.log('Performing periodic authentication check...')
-      await checkAuthentication()
-    }, 5 * 60 * 1000) // 5 minutes
-
-    // Set up visibility change listener to check auth when app becomes visible
-    const handleVisibilityChange = async () => {
-      if (!document.hidden) {
-        console.log('App became visible, checking authentication...')
-        await checkAuthentication()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    // Cleanup
-    return () => {
-      clearInterval(intervalId)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [checkAuthentication])
-
-  // Listen for storage changes (in case tokens are cleared from another tab)
-  useEffect(() => {
-    const handleStorageChange = async (e: StorageEvent) => {
-      if (e.key === 'access_token' || e.key === 'refresh_token') {
-        console.log('Token storage changed, re-checking authentication...')
-        const isValid = await checkAuthentication()
-        if (!isValid) {
-          setIsChecking(true)
-        }
-      }
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
   }, [checkAuthentication])
 
   if (isChecking) {
