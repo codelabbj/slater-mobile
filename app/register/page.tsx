@@ -75,18 +75,22 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center p-4 gradient-background mobile-safe-touch">
       <Card className="floating-card w-full max-w-md animate-scale-in">
         <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-2">
-            <Image
-              src="/Slater-logo.png"
-              alt="Slater Logo"
-              width={120}
-              height={120}
-              className="object-contain animate-float"
-              priority
-            />
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-2 ring-primary/30 ring-offset-2 ring-offset-background shadow-xl shadow-primary/20">
+                <Image
+                  src="/Slater-logo.png"
+                  alt="Slater Logo"
+                  width={80}
+                  height={20}
+                  className="w-16 h-auto object-contain drop-shadow-sm"
+                  priority
+                />
+              </div>
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">Slater</CardTitle>
-          <CardDescription className="text-center">{t("register")}</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">Rejoindre Slater</CardTitle>
+          {/* <CardDescription className="text-center">{t("register")}</CardDescription> */}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

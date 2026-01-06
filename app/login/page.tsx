@@ -374,20 +374,24 @@ export default function LoginPage() {
     <div className="min-h-screen gradient-background flex items-center justify-center p-4 mobile-safe-touch">
       <Card className="floating-card w-full max-w-md animate-scale-in">
         <CardHeader className="space-y-3 text-center">
-          <div className="flex justify-center mb-2">
-            <Image
-              src="/Slater-logo.png"
-              alt="Slater Logo"
-              width={120}
-              height={120}
-              className="object-contain animate-float"
-              priority
-            />
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-2 ring-primary/30 ring-offset-2 ring-offset-background shadow-xl shadow-primary/20">
+                <Image
+                  src="/Slater-logo.png"
+                  alt="Slater Logo"
+                  width={80}
+                  height={20}
+                  className="w-16 h-auto object-contain drop-shadow-sm"
+                  priority
+                />
+              </div>
+            </div>
           </div>
-          <CardTitle className="mobile-heading text-2xl">Slater</CardTitle>
-          <CardDescription className="mobile-text">
+          <CardTitle className="mobile-heading text-2xl">Bienvenue sur Slater</CardTitle>
+          {/* <CardDescription className="mobile-text">
             {isForgotPassword ? "Réinitialisation du mot de passe" : t("login")}
-          </CardDescription>
+          </CardDescription> */}
         </CardHeader>
         <CardContent>
           {isForgotPassword ? (

@@ -23,7 +23,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { AuthGuard } from "@/components/auth-guard"
-import { getUser, logout } from "@/lib/auth"
+import { getUser, logout, type User } from "@/lib/auth"
 import api from "@/lib/api"
 import type { Transaction } from "@/lib/types"
 import { formatDate } from "@/lib/utils"
@@ -33,7 +33,7 @@ import Link from "next/link"
 function DashboardContent() {
   const { t } = useTranslation()
   const router = useRouter()
-  const user = getUser()
+  const [user, setUser] = useState<User | null>(null)
   const { referralBonusEnabled, settings } = useSettings()
   const [adImageErrors, setAdImageErrors] = useState<Set<number>>(new Set())
   const [currentAdIndex, setCurrentAdIndex] = useState(0)
@@ -136,6 +136,20 @@ function DashboardContent() {
     },
   })
 
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getUser()
+        setUser(userData)
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
   // Reset current index when advertisements change
   useEffect(() => {
     if (advertisements && advertisements.length > 0) {
@@ -213,7 +227,15 @@ function DashboardContent() {
                       className="h-8 w-auto object-contain"
                     />
                   </div>
-                  <div className="hidden sm:flex flex-col leading-tight">
+                  <div className="hidden md:flex flex-col leading-tight">
+                    <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Slater</span>
+                    <span className="text-sm font-semibold text-foreground">Espace client</span>
+                  </div>
+                </div>
+
+                {/* Mobile Title - Centered */}
+                <div className="md:hidden flex-1 text-center">
+                  <div className="flex flex-col leading-tight">
                     <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Slater</span>
                     <span className="text-sm font-semibold text-foreground">Espace client</span>
                   </div>
@@ -221,10 +243,11 @@ function DashboardContent() {
 
                 {/* Right side actions */}
                 <div className="flex items-center gap-3">
+                  {/* Desktop only buttons */}
                   <Button
                     variant="glass"
                     size="icon"
-                    className="h-10 w-10 rounded-2xl relative"
+                    className="hidden md:flex h-10 w-10 rounded-2xl relative"
                     onClick={() => router.push("/notifications")}
                   >
                     <Bell className="h-5 w-5" />
@@ -238,7 +261,7 @@ function DashboardContent() {
                   <Button
                     variant="glass"
                     size="icon"
-                    className="h-10 w-10 rounded-2xl"
+                    className="hidden md:flex h-10 w-10 rounded-2xl"
                     onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                   >
                     {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -247,7 +270,7 @@ function DashboardContent() {
                   {/* User Avatar Button - Exact Specifications */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button className="relative h-12 w-12 sm:h-14 sm:w-14 p-0 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 border border-primary/30 shadow-lg shadow-primary/20 glow-primary hover:shadow-primary/30 hover:scale-105 transition-all duration-200">
+                      <Button className="relative h-12 w-12 sm:h-14 sm:w-14 p-0 rounded-full bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 border border-primary/30 shadow-lg shadow-primary/20 glow-primary hover:shadow-primary/30 hover:scale-105 transition-all duration-200">
                         <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-2xl bg-primary/10 ring-2 ring-offset-1 ring-offset-background flex items-center justify-center">
                           <span className="text-sm sm:text-base font-bold ">
                             {(user?.first_name?.[0]?.toUpperCase() || "") + (user?.last_name?.[0]?.toUpperCase() || "") || "U"}
@@ -273,6 +296,36 @@ function DashboardContent() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Mobile Action Buttons */}
+                      <div className="md:hidden border-b border-primary/10">
+                        <div className="flex gap-2 p-3">
+                          <Button
+                            variant="glass"
+                            size="sm"
+                            className="flex-1 h-10 rounded-full relative"
+                            onClick={() => router.push("/notifications")}
+                          >
+                            <Bell className="h-4 w-4 mr-2" />
+                            Notifications
+                            {unreadNotificationCount > 0 && (
+                              <Badge className="ml-2 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-500">
+                                {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                              </Badge>
+                            )}
+                          </Button>
+                          <Button
+                            variant="glass"
+                            size="sm"
+                            className="flex-1 h-10 rounded-full"
+                            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                          >
+                            {theme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                            Theme
+                          </Button>
+                        </div>
+                      </div>
+
                       <DropdownMenuItem onClick={() => router.push("/profile")} className="hover:bg-primary/10 mx-2 my-1 rounded-xl">
                         <UserCircle className="h-4 w-4 mr-2" />
                         Profil
@@ -306,55 +359,60 @@ function DashboardContent() {
                 </p>
               </div>
 
-              {/* Referral & Bonus Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-6">
-                {/* Referral Code Card */}
-                <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">
-                          <Gift className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs sm:text-sm text-muted-foreground">Code de parrainage</p>
-                          <p className="text-sm sm:text-base font-mono font-semibold text-foreground truncate">
-                            {user?.referral_code || "SLATER123"}
-                          </p>
-                        </div>
+              {/* Advertisement Section - Exact Specifications */}
+              <div className="w-full mt-6">
+                {advertisements && advertisements.length > 0 ? (
+                  <Card className="overflow-hidden border border-primary/20 glass-panel p-0 py-0 rounded-2xl sm:rounded-3xl">
+                    <CardContent className="p-0">
+                      <Carousel
+                        opts={{
+                          align: "start",
+                          loop: true,
+                        }}
+                        className="w-full"
+                        onTouchStart={() => setIsCarouselPaused(true)}
+                        onTouchEnd={() => setIsCarouselPaused(false)}
+                      >
+                        <CarouselContent>
+                          {advertisements.map((ad, index) => (
+                            <CarouselItem key={index}>
+                              <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48">
+                                {!adImageErrors.has(index) ? (
+                                  <img
+                                    src={ad.image}
+                                    alt={ad.title || "Publicité"}
+                                    className="object-cover cursor-pointer transition-transform duration-300 hover:scale-105 w-full h-full"
+                                    onClick={() => {
+                                      if (ad.link) {
+                                        window.open(ad.link, "_blank", "noopener,noreferrer")
+                                      }
+                                    }}
+                                    onError={() => handleImageError(index)}
+                                  />
+                                ) : (
+                                  <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48 bg-muted/20 flex items-center justify-center">
+                                    <div className="text-center p-4 text-muted-foreground">
+                                      <p className="text-sm sm:text-base font-semibold text-foreground/80">Espace publicitaire</p>
+                                      <p className="text-xs text-muted-foreground mt-1">Vos campagnes apparaîtront ici</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                      </Carousel>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="overflow-hidden border border-primary/20 glass-panel p-0 py-0 rounded-2xl sm:rounded-3xl">
+                    <CardContent className="p-0">
+                    <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48 bg-muted/20 flex items-center justify-center rounded-2xl sm:rounded-3xl">
+                      <div className="text-center p-4 text-muted-foreground">
+                        <p className="text-sm sm:text-base font-semibold text-foreground/80">Espace publicitaire</p>
+                        <p className="text-xs text-muted-foreground mt-1">Vos campagnes apparaîtront ici</p>
                       </div>
-                      <Button className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 rounded-lg hover:bg-primary/10">
-                        <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Bonus Card */}
-                {referralBonusEnabled && user && user.bonus_available > 0 && (
-                  <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">
-                    <CardContent className="p-3 sm:p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">
-                            <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs sm:text-sm text-muted-foreground">Bonus disponible</p>
-                            <p className="text-sm sm:text-base font-semibold text-foreground">
-                              {user.bonus_available.toLocaleString()} FCFA
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="outline-glow"
-                          size="sm"
-                          className="h-8 px-3"
-                          onClick={() => router.push("/bonus")}
-                        >
-                          Utiliser
-                        </Button>
-                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -424,64 +482,61 @@ function DashboardContent() {
             </CardContent>
           </Card>
 
-          {/* Advertisement Section - Exact Specifications */}
-          <div className="w-full">
-            {advertisements && advertisements.length > 0 ? (
-              <Card className="overflow-hidden border border-primary/20 glass-panel p-0 py-0 rounded-2xl sm:rounded-3xl">
-                <CardContent className="p-0">
-                  <Carousel
-                    opts={{
-                      align: "start",
-                      loop: true,
-                    }}
-                    className="w-full"
-                    onTouchStart={() => setIsCarouselPaused(true)}
-                    onTouchEnd={() => setIsCarouselPaused(false)}
-                  >
-                    <CarouselContent>
-                      {advertisements.map((ad, index) => (
-                        <CarouselItem key={index}>
-                          <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48">
-                            {!adImageErrors.has(index) ? (
-                              <img
-                                src={ad.image}
-                                alt={ad.title || "Publicité"}
-                                className="object-cover cursor-pointer transition-transform duration-300 hover:scale-105 w-full h-full"
-                                onClick={() => {
-                                  if (ad.link) {
-                                    window.open(ad.link, "_blank", "noopener,noreferrer")
-                                  }
-                                }}
-                                onError={() => handleImageError(index)}
-                              />
-                            ) : (
-                              <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48 bg-muted/20 flex items-center justify-center">
-                                <div className="text-center p-4 text-muted-foreground">
-                                  <p className="text-sm sm:text-base font-semibold text-foreground/80">Espace publicitaire</p>
-                                  <p className="text-xs text-muted-foreground mt-1">Vos campagnes apparaîtront ici</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                  </Carousel>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="overflow-hidden border border-primary/20 glass-panel p-0 py-0 rounded-2xl sm:rounded-3xl">
-                <CardContent className="p-0">
-                <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48 bg-muted/20 flex items-center justify-center rounded-2xl sm:rounded-3xl">
-                  <div className="text-center p-4 text-muted-foreground">
-                    <p className="text-sm sm:text-base font-semibold text-foreground/80">Espace publicitaire</p>
-                    <p className="text-xs text-muted-foreground mt-1">Vos campagnes apparaîtront ici</p>
+          {/* Referral & Bonus Cards - Only show if referral bonus is enabled */}
+          {referralBonusEnabled && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {/* Referral Code Card */}
+              <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">
+                        <Gift className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm text-muted-foreground">Code de parrainage</p>
+                        <p className="text-sm sm:text-base font-mono font-semibold text-foreground truncate">
+                          {user?.referral_code || "SLATER123"}
+                        </p>
+                      </div>
+                    </div>
+                    <Button className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 rounded-full hover:bg-primary/10">
+                      <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
                   </div>
-                </div>
                 </CardContent>
               </Card>
-            )}
-          </div>
+
+              {/* Bonus Card */}
+              {user && user.bonus_available > 0 && (
+                <Card className="glass-panel border-primary/15 rounded-xl sm:rounded-2xl">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/15 text-primary flex-shrink-0">
+                          <Coins className="h-4 w-4 sm:h-5 sm:w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm text-muted-foreground">Bonus disponible</p>
+                          <p className="text-sm sm:text-base font-semibold text-foreground">
+                            {user.bonus_available.toLocaleString()} FCFA
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline-glow"
+                        size="sm"
+                        className="h-8 px-3"
+                        onClick={() => router.push("/bonus")}
+                      >
+                        Utiliser
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
 
           {/* Recent Activities Section - Exact Specifications */}
           <div className="space-y-5 sm:space-y-8">
@@ -595,7 +650,7 @@ function DashboardContent() {
         <PopoverTrigger asChild>
           <Button
             variant="glow"
-            className="fixed right-4 bottom-24 sm:bottom-10 sm:right-8 h-16 w-16 p-0 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground shadow-xl shadow-primary/40 hover:shadow-primary/60 transition-all duration-300 transform hover:-translate-y-2 hover:scale-110 border border-primary/30"
+            className="fixed right-4 bottom-24 sm:bottom-10 sm:right-8 h-16 w-16 p-0 rounded-full bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground shadow-xl shadow-primary/40 hover:shadow-primary/60 transition-all duration-300 transform hover:-translate-y-2 hover:scale-110 border border-primary/30"
             size="icon"
           >
             <MessageCircleMore className="h-6 w-6" />
@@ -618,9 +673,9 @@ function DashboardContent() {
                 variant="ghost"
                 className="w-full justify-start gap-3 h-auto py-3"
                 onClick={() => {
-                  const whatsappUrl = settings?.whatsapp
-                    ? `https://wa.me/${settings.whatsapp}`
-                    : "https://wa.me/1234567890"
+                  const whatsappUrl = settings?.whatsapp_phone
+                    ? `https://wa.me/${settings.whatsapp_phone}`
+                    : "https://wa.me/2250544360901"
                   window.open(whatsappUrl, "_blank")
                   setMessageMenuOpen(false)
                 }}

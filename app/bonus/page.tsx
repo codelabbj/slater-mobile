@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AuthGuard } from "@/components/auth-guard"
-import { getUser } from "@/lib/auth"
+import { getUser, type User } from "@/lib/auth"
 import api from "@/lib/api"
 import type { Bonus, PaginatedResponse, Platform, UserAppId } from "@/lib/types"
 import { formatDate } from "@/lib/utils"
@@ -24,7 +24,7 @@ function BonusContent() {
   const { t } = useTranslation()
   const router = useRouter()
   const queryClient = useQueryClient()
-  const user = getUser()
+  const [user, setUser] = useState<User | null>(null)
   const { referralBonusEnabled, isLoading: settingsLoading } = useSettings()
 
   // Form state for bonus transaction
@@ -32,6 +32,20 @@ function BonusContent() {
   const [selectedBetId, setSelectedBetId] = useState<UserAppId | null>(null)
   const [amount, setAmount] = useState("")
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getUser()
+        setUser(userData)
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      }
+    }
+
+    fetchUser()
+  }, [])
 
   // Redirect if referral bonus is disabled
   useEffect(() => {

@@ -9,7 +9,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.7 0.2 200);
+  --primary: #1fa9d6;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.95 0.05 200);
   --secondary-foreground: oklch(0.7 0.2 200);
@@ -45,7 +45,7 @@
   --card-foreground: oklch(0.95 0.01 200);
   --popover: oklch(0.28 0.04 200);
   --popover-foreground: oklch(0.95 0.01 200);
-  --primary: oklch(0.75 0.22 200);
+  --primary: #1fa9d6;
   --primary-foreground: oklch(0.25 0.03 200);
   --secondary: oklch(0.32 0.06 200);
   --secondary-foreground: oklch(0.75 0.22 200);
@@ -174,7 +174,7 @@
   }
   
   .mobile-form-input {
-    @apply min-h-[50px] text-base rounded-2xl border border-primary/25 bg-muted/70 px-4 py-3
+    @apply min-h-[50px] text-base rounded-full border border-primary/25 bg-muted/70 px-4 py-3
       shadow-md
       focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:border-primary/80
       dark:bg-background/70 dark:border-primary/40;
@@ -231,7 +231,7 @@
 
   /* Button enhancements */
   .mobile-btn-enhanced {
-    @apply min-h-[52px] text-base font-semibold rounded-2xl shadow-lg transition-all duration-200 hover:shadow-xl active:scale-[0.98];
+    @apply min-h-[52px] text-base font-semibold rounded-full shadow-lg transition-all duration-200 hover:shadow-xl active:scale-[0.98];
   }
 
   .btn-glow {
