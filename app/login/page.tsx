@@ -88,7 +88,13 @@ export default function LoginPage() {
         console.error('Error requesting notification permissions:', error)
         // Continue to dashboard even if permission request fails
       }
-      
+
+      // Add delay on mobile to ensure tokens are persisted before navigation
+      if (Capacitor.isNativePlatform()) {
+        console.log('Mobile platform detected, adding delay before navigation...')
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+
       router.push("/dashboard")
     } catch (error: any) {
       toast.error(error.message || "Erreur de connexion")
