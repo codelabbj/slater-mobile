@@ -112,37 +112,58 @@ export const isAuthenticated = async (): Promise<boolean> => {
 }
 
 export const ensureValidToken = async (): Promise<boolean> => {
-  const token = await getAccessToken()
-  if (!token) {
+  try {
+    const token = await getAccessToken()
+    console.log('ensureValidToken: access token exists:', !!token)
+
+    if (!token) {
+      console.log('ensureValidToken: no access token found')
+      return false
+    }
+
+    // If token is expired, try to refresh it
+    const isExpired = isTokenExpired(token)
+    console.log('ensureValidToken: token expired:', isExpired)
+
+    if (isExpired) {
+      console.log('ensureValidToken: attempting token refresh...')
+      const newToken = await refreshAccessToken()
+      const refreshSuccess = !!newToken
+      console.log('ensureValidToken: token refresh success:', refreshSuccess)
+      return refreshSuccess
+    }
+
+    // Check if token will expire soon (within 5 minutes) and refresh proactively
+    try {
+      const decoded = decodeJWT(token)
+      if (decoded && decoded.exp) {
+        const currentTime = Math.floor(Date.now() / 1000)
+        const timeUntilExpiry = decoded.exp - currentTime
+        console.log('ensureValidToken: token expires in', timeUntilExpiry, 'seconds')
+
+        // If token expires within 5 minutes, refresh it
+        if (timeUntilExpiry < 300) {
+          console.log('ensureValidToken: token expires soon, refreshing proactively...')
+          const newToken = await refreshAccessToken()
+          const proactiveRefreshSuccess = !!newToken
+          console.log('ensureValidToken: proactive refresh success:', proactiveRefreshSuccess)
+          return proactiveRefreshSuccess
+        }
+      } else {
+        console.log('ensureValidToken: could not decode token or no exp field')
+      }
+    } catch (error) {
+      console.error('ensureValidToken: error checking token expiry time:', error)
+      // Don't fail validation just because we can't check expiry
+    }
+
+    console.log('ensureValidToken: token is valid')
+    return true
+  } catch (error) {
+    console.error('ensureValidToken: unexpected error:', error)
+    // On unexpected errors, assume token is invalid for safety
     return false
   }
-
-  // If token is expired, try to refresh it
-  if (isTokenExpired(token)) {
-    console.log('Access token expired, attempting refresh...')
-    const newToken = await refreshAccessToken()
-    return !!newToken
-  }
-
-  // Check if token will expire soon (within 5 minutes) and refresh proactively
-  try {
-    const decoded = decodeJWT(token)
-    if (decoded && decoded.exp) {
-      const currentTime = Math.floor(Date.now() / 1000)
-      const timeUntilExpiry = decoded.exp - currentTime
-
-      // If token expires within 5 minutes, refresh it
-      if (timeUntilExpiry < 300) {
-        console.log('Access token expires soon, refreshing proactively...')
-        const newToken = await refreshAccessToken()
-        return !!newToken
-      }
-    }
-  } catch (error) {
-    console.error('Error checking token expiry time:', error)
-  }
-
-  return true
 }
 
 export const refreshAccessToken = async (): Promise<string | null> => {
