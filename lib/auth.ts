@@ -1,5 +1,37 @@
 import { PersistentStorage } from './storage'
 
+// JWT token utilities
+function decodeJWT(token: string): any | null {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+    }).join(''))
+
+    return JSON.parse(jsonPayload)
+  } catch (error) {
+    console.error('Error decoding JWT:', error)
+    return null
+  }
+}
+
+function isTokenExpired(token: string): boolean {
+  try {
+    const decoded = decodeJWT(token)
+    if (!decoded || !decoded.exp) {
+      return true // Consider invalid tokens as expired
+    }
+
+    // exp is in seconds, Date.now() is in milliseconds
+    const currentTime = Math.floor(Date.now() / 1000)
+    return decoded.exp < currentTime
+  } catch (error) {
+    console.error('Error checking token expiration:', error)
+    return true
+  }
+}
+
 export interface User {
   id: string
   first_name: string
@@ -66,7 +98,84 @@ export const getAccessToken = async (): Promise<string | null> => {
 
 export const isAuthenticated = async (): Promise<boolean> => {
   const token = await getAccessToken()
-  return !!token
+  if (!token) {
+    return false
+  }
+
+  // Check if token is expired
+  if (isTokenExpired(token)) {
+    console.log('Access token is expired')
+    return false
+  }
+
+  return true
+}
+
+export const ensureValidToken = async (): Promise<boolean> => {
+  const token = await getAccessToken()
+  if (!token) {
+    return false
+  }
+
+  // If token is expired, try to refresh it
+  if (isTokenExpired(token)) {
+    console.log('Access token expired, attempting refresh...')
+    const newToken = await refreshAccessToken()
+    return !!newToken
+  }
+
+  // Check if token will expire soon (within 5 minutes) and refresh proactively
+  try {
+    const decoded = decodeJWT(token)
+    if (decoded && decoded.exp) {
+      const currentTime = Math.floor(Date.now() / 1000)
+      const timeUntilExpiry = decoded.exp - currentTime
+
+      // If token expires within 5 minutes, refresh it
+      if (timeUntilExpiry < 300) {
+        console.log('Access token expires soon, refreshing proactively...')
+        const newToken = await refreshAccessToken()
+        return !!newToken
+      }
+    }
+  } catch (error) {
+    console.error('Error checking token expiry time:', error)
+  }
+
+  return true
+}
+
+export const refreshAccessToken = async (): Promise<string | null> => {
+  try {
+    const refreshToken = await PersistentStorage.get("refresh_token")
+    if (!refreshToken) {
+      throw new Error("No refresh token available")
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refresh: refreshToken }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Token refresh failed: ${response.status}`)
+    }
+
+    const data = await response.json()
+    const newAccessToken = data.access
+
+    // Save the new access token
+    await PersistentStorage.set("access_token", newAccessToken)
+
+    console.log('Access token refreshed successfully')
+    return newAccessToken
+  } catch (error) {
+    console.error('Error refreshing access token:', error)
+    return null
+  }
 }
 
 export const logout = async () => {
