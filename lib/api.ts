@@ -1,54 +1,78 @@
 import axios from "axios"
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"
+console.log('API Base URL:', API_BASE_URL)
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net",
+  baseURL: API_BASE_URL,
 })
 
 // Request interceptor to add auth token
 api.interceptors.request.use(async (config) => {
-  if (typeof window !== "undefined") {
+  console.log('API Request:', config.method?.toUpperCase(), config.url)
+
+  // Skip adding auth token for authentication endpoints
+  const authEndpoints = ['/auth/login', '/auth/register', '/auth/refresh']
+  const isAuthEndpoint = authEndpoints.some(endpoint => config.url?.includes(endpoint))
+
+  if (!isAuthEndpoint && typeof window !== "undefined") {
     try {
       const { getAccessToken } = await import('./auth')
       const token = await getAccessToken()
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
+        console.log('Added auth token to request')
+      } else {
+        console.log('No auth token available for request')
       }
     } catch (error) {
       console.error('Error getting access token for request:', error)
     }
+  } else if (isAuthEndpoint) {
+    console.log('Skipping auth token for auth endpoint:', config.url)
   }
+
   return config
 })
 
 // Response interceptor for token refresh and error handling
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    console.log('API Response:', res.status, res.config.method?.toUpperCase(), res.config.url)
+    return res
+  },
   async (error) => {
+    console.log('API Error:', error.response?.status, error.config?.method?.toUpperCase(), error.config?.url, error.message)
     const original = error.config
 
     // Handle 401 errors with token refresh
     if (error.response?.status === 401 && !original._retry) {
+      console.log('Got 401 error, attempting token refresh...')
       original._retry = true
 
       if (typeof window !== "undefined") {
         try {
           const { PersistentStorage } = await import('./storage')
           const refresh = await PersistentStorage.get("refresh_token")
+          console.log('Refresh token available:', !!refresh)
           if (!refresh) {
             throw new Error("No refresh token")
           }
 
+          console.log('Making refresh request...')
           const res = await axios.post(
             `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"}/auth/refresh`,
             { refresh },
           )
 
           const newToken = res.data.access
+          console.log('Refresh successful, new token received')
           await PersistentStorage.set("access_token", newToken)
           original.headers.Authorization = `Bearer ${newToken}`
 
           return api(original)
-        } catch (refreshError) {
+        } catch (refreshError: any) {
+          console.log('Refresh failed:', refreshError.message || refreshError)
           // Clear tokens and redirect to login
           const { PersistentStorage } = await import('./storage')
           await PersistentStorage.clear()

@@ -464,66 +464,55 @@ function DashboardContent() {
               )}
 
               {/* Primary Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-6">
+              <div className="grid grid-cols-3 gap-4 sm:gap-6 mt-8">
                 {/* Deposit Button */}
-                <Button
-                  className="h-12 sm:h-12 justify-between bg-primary text-primary-foreground shadow-lg glow-primary rounded-xl sm:rounded-2xl"
-                  onClick={() => router.push("/deposit")}
-                >
-                  <div className="flex items-center justify-between w-full gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                      <span className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-background/20">
-                        <ArrowDownToLine className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </span>
-                      <div className="text-left min-w-0">
-                        <span className="text-xs sm:text-sm font-semibold">Dépôt</span>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </div>
-                </Button>
+                <div className="flex flex-col items-center gap-3">
+                  <Button
+                    className="h-16 w-16 p-0 rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white shadow-xl shadow-blue-500/40 hover:shadow-blue-500/60 transition-all duration-300 transform hover:-translate-y-1 hover:scale-110 border border-blue-400/30"
+                    onClick={() => router.push("/deposit")}
+                  >
+                    <ArrowDownToLine className="h-7 w-7" />
+                  </Button>
+                  <span className="text-sm font-semibold text-foreground">Dépôt</span>
+                </div>
 
                 {/* Withdrawal Button */}
-                <Button
-                  className="h-12 sm:h-12 justify-between border-primary/30 bg-primary/5 text-foreground hover:bg-primary/10 rounded-xl sm:rounded-2xl"
-                  onClick={() => router.push("/withdraw")}
-                >
-                  <div className="flex items-center justify-between w-full gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                      <span className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-secondary/20">
-                        <ArrowUpFromLine className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </span>
-                      <div className="text-left min-w-0">
-                        <span className="text-xs sm:text-sm font-semibold">Retrait</span>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </div>
-                </Button>
+                <div className="flex flex-col items-center gap-3">
+                  <Button
+                    className="h-16 w-16 p-0 rounded-full bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 text-white shadow-xl shadow-emerald-500/40 hover:shadow-emerald-500/60 transition-all duration-300 transform hover:-translate-y-1 hover:scale-110 border border-emerald-400/30"
+                    onClick={() => router.push("/withdraw")}
+                  >
+                    <ArrowUpFromLine className="h-7 w-7" />
+                  </Button>
+                  <span className="text-sm font-semibold text-foreground">Retrait</span>
+                </div>
+
+                {/* Coupon Button */}
+                <div className="flex flex-col items-center gap-3">
+                  <Button
+                    className="h-16 w-16 p-0 rounded-full bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 text-white shadow-xl shadow-amber-500/40 hover:shadow-amber-500/60 transition-all duration-300 transform hover:-translate-y-1 hover:scale-110 border border-amber-400/30"
+                    onClick={() => router.push("/coupon")}
+                  >
+                    <Ticket className="h-7 w-7" />
+                  </Button>
+                  <span className="text-sm font-semibold text-foreground">Coupons</span>
+                </div>
               </div>
 
               {/* Quick Access Pills */}
-              <div className="flex flex-wrap gap-2 sm:gap-3 mt-6">
-                <Button
-                  variant="ghost"
-                  className="h-10 sm:h-10 px-3 sm:px-4 rounded-full border border-primary/20 bg-primary/5 text-foreground hover:bg-primary/10"
-                  onClick={() => router.push("/coupon")}
-                >
-                  <Ticket className="h-4 w-4 mr-2" />
-                  <span className="text-sm font-semibold">Coupons</span>
-                </Button>
-
-                {referralBonusEnabled && (
-                  <Button
-                    variant="ghost"
-                    className="h-10 sm:h-10 px-3 sm:px-4 rounded-full border border-primary/20 bg-primary/5 text-foreground hover:bg-primary/10"
-                    onClick={() => router.push("/bonus")}
-                  >
-                    <Gift className="h-4 w-4 mr-2" />
-                    <span className="text-sm font-semibold">Bonus</span>
-                  </Button>
-                )}
-              </div>
+              {referralBonusEnabled && (
+                <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-8">
+                  <div className="flex flex-col items-center gap-3">
+                    <Button
+                      className="h-16 w-16 p-0 rounded-full bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 text-white shadow-xl shadow-purple-500/40 hover:shadow-purple-500/60 transition-all duration-300 transform hover:-translate-y-1 hover:scale-110 border border-purple-400/30"
+                      onClick={() => router.push("/bonus")}
+                    >
+                      <Gift className="h-7 w-7" />
+                    </Button>
+                    <span className="text-sm font-semibold text-foreground">Bonus</span>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
