@@ -55,11 +55,11 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // Gradle plugin for Android
-        classpath 'com.android.tools.build:gradle:8.7.0'
-        
+        // Gradle plugin for Android - updated for Gradle 9.0 compatibility
+        classpath 'com.android.tools.build:gradle:8.7.3'
+
         // Google services plugin (needed for Firebase)
-        classpath 'com.google.gms:google-services:4.4.0'
+        classpath 'com.google.gms:google-services:4.4.2'
     }
 }
 
