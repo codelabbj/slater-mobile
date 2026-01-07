@@ -12,8 +12,12 @@ api.interceptors.request.use(async (config) => {
   console.log('API Request:', config.method?.toUpperCase(), config.url)
 
   // Skip adding auth token for authentication endpoints
-  const authEndpoints = ['/auth/login', '/auth/register', '/auth/refresh']
-  const isAuthEndpoint = authEndpoints.some(endpoint => config.url?.includes(endpoint))
+  // Check both relative paths and full URLs
+  const authEndpoints = ['auth/login', 'auth/register', 'auth/refresh']
+  const fullUrl = config.url || ''
+  const isAuthEndpoint = authEndpoints.some(endpoint =>
+    fullUrl.includes(endpoint) || fullUrl.includes(`/${endpoint}`)
+  )
 
   if (!isAuthEndpoint && typeof window !== "undefined") {
     try {
@@ -30,6 +34,8 @@ api.interceptors.request.use(async (config) => {
     }
   } else if (isAuthEndpoint) {
     console.log('Skipping auth token for auth endpoint:', config.url)
+    // Explicitly remove any existing authorization header
+    delete config.headers.Authorization
   }
 
   return config
@@ -63,6 +69,12 @@ api.interceptors.response.use(
           const res = await axios.post(
             `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"}/auth/refresh`,
             { refresh },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                // Explicitly no Authorization header for refresh requests
+              }
+            }
           )
 
           const newToken = res.data.access

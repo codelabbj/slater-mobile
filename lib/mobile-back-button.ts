@@ -16,7 +16,7 @@ export class MobileBackButtonHandler {
     return MobileBackButtonHandler.instance
   }
 
-  initialize(callback: (e?: Event) => void) {
+  async initialize(callback: (e?: Event) => void) {
     if (this.isInitialized) return
     this.backButtonCallback = callback
 
@@ -28,10 +28,14 @@ export class MobileBackButtonHandler {
 
     // Use Capacitor App plugin for native back button handling
     if (typeof window !== 'undefined' && (window as any).Capacitor) {
-      this.capacitorListener = App.addListener('backButton', ({ canGoBack }) => {
-        // Always prevent default exit behavior
-        handleBackButton()
-      })
+      try {
+        this.capacitorListener = await App.addListener('backButton', ({ canGoBack }) => {
+          // Always prevent default exit behavior
+          handleBackButton()
+        })
+      } catch (error) {
+        console.warn('Failed to add Capacitor back button listener:', error)
+      }
     }
 
     // Fallback event listeners for web/browser
@@ -56,7 +60,17 @@ export class MobileBackButtonHandler {
 
   cleanup() {
     if (this.capacitorListener) {
-      this.capacitorListener.remove()
+      try {
+        // Try to remove the listener using the proper Capacitor method
+        if (typeof this.capacitorListener.remove === 'function') {
+          this.capacitorListener.remove()
+        } else if (typeof this.capacitorListener.destroy === 'function') {
+          // Some versions use destroy instead of remove
+          this.capacitorListener.destroy()
+        }
+      } catch (error) {
+        console.warn('Failed to cleanup Capacitor listener:', error)
+      }
       this.capacitorListener = undefined
     }
     if (this.isInitialized) {

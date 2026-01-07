@@ -79,7 +79,10 @@ export function MobileBackButtonHandler() {
     }
 
     // Initialize mobile back button handler
-    mobileBackButtonHandler.initialize(handleBackButton)
+    const initHandler = async () => {
+      await mobileBackButtonHandler.initialize(handleBackButton)
+    }
+    initHandler()
 
     // Update callback when pathname changes
     mobileBackButtonHandler.setCallback(handleBackButton)

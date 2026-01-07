@@ -1,26 +1,15 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Providers } from "@/components/providers"
 import { UpdateCheck } from "@/app/_components/UpdateCheck"
 import { MobileBackButtonHandler } from "@/components/mobile-back-button-handler"
 import { AppLifecycleManager } from "@/components/app-lifecycle-manager"
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Slater - Dépôt et Retrait",
   description: "Application de gestion de dépôts et retraits pour paris sportifs",
-
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
-  themeColor: "#00FFFF",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -29,6 +18,14 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
+}
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#00FFFF",
 }
 
 export default function RootLayout({

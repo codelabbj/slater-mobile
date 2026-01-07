@@ -184,47 +184,33 @@ async function downloadViaCapacitorShare(apkUrl: string): Promise<boolean> {
   }
 }
 
-// Main download function that tries all methods
+// Simplified download function for mobile apps only
 async function downloadAndInstall(apkUrl: string) {
-  console.log('=== Starting download with multiple fallback methods ===');
+  console.log('=== Starting APK download ===');
   console.log('Download URL:', apkUrl);
-  
-  // Try methods in order of preference
-  const methods = [
-    () => downloadViaJavaScriptInterface(apkUrl), // Native bridge (fastest)
-    () => downloadViaAnchor(apkUrl), // Direct anchor download
-    () => downloadViaCapacitorBrowser(apkUrl), // Capacitor Browser
-    () => downloadViaWindowOpen(apkUrl), // Window open
-    () => downloadViaBlob(apkUrl), // Fetch and blob
-    () => downloadViaLocation(apkUrl), // Location href (triggers WebView)
-    () => downloadViaCapacitorShare(apkUrl), // Share as last resort
-  ];
-  
-  // Try synchronous methods first
-  for (let i = 0; i < 4; i++) {
-    if (methods[i]()) {
-      console.log(`Successfully triggered download using method ${i + 1}`);
-      return;
-    }
+
+  // Only attempt download in Capacitor environment
+  if (typeof window === 'undefined' || !(window as any).Capacitor) {
+    console.log('Download skipped - not in Capacitor environment');
+    return;
   }
-  
-  // Try async methods
-  for (let i = 4; i < methods.length; i++) {
+
+  try {
+    // Try the most reliable method first: window.location.href
+    // This should trigger the WebView's download handler
+    console.log('Attempting download via location.href');
+    window.location.href = apkUrl;
+    console.log('Download initiated');
+  } catch (error) {
+    console.error('Download failed:', error);
+    // Fallback: try opening in browser
     try {
-      const result = await methods[i]();
-      if (result) {
-        console.log(`Successfully triggered download using method ${i + 1}`);
-        return;
-      }
-    } catch (error) {
-      console.error(`Method ${i + 1} failed:`, error);
-      continue;
+      console.log('Attempting fallback via window.open');
+      window.open(apkUrl, '_blank');
+    } catch (fallbackError) {
+      console.error('Fallback download also failed:', fallbackError);
     }
   }
-  
-  // If all methods fail, try location.href as absolute fallback
-  console.error('All download methods failed, using location.href as final fallback');
-  window.location.href = apkUrl;
 }
 // Dynamically import Capacitor Browser to avoid build issues
 // let Browser: any = null;
@@ -244,29 +230,36 @@ export function UpdateCheck() {
 
   useEffect(() => {
     setMounted(true);
+
+    // Only check for updates in Capacitor/mobile environment, not in web browser
+    if (typeof window !== 'undefined' && !(window as any).Capacitor) {
+      console.log('Update check skipped - not in Capacitor environment');
+      return;
+    }
+
     const currentVersion = getCurrentVersion();
 
-    fetch("https://slaterci-mobile-app.vercel.app/releases/manifest.json")
+    fetch("/releases/manifest.json")
       .then(r => r.json())
       .then(manifest => {
         const manifestVersion = manifest.android_version;
         console.log('Manifest version:', manifestVersion, 'Current version:', currentVersion);
-        
+
         // Check if we've already dismissed this version
         const dismissedVersion = localStorage.getItem('app_dismissed_version');
         const installedVersion = localStorage.getItem('app_installed_version');
         const wasDismissed = dismissedVersion === manifestVersion;
         const isAlreadyInstalled = installedVersion === manifestVersion;
-        
+
         console.log('Dismissed version:', dismissedVersion, 'Installed version:', installedVersion);
         console.log('Was dismissed:', wasDismissed, 'Is installed:', isAlreadyInstalled);
-        
+
         // Show update if:
         // 1. Force update is enabled AND we haven't installed this version yet, OR
         // 2. There's a newer version available AND we haven't dismissed it AND we haven't installed it
         const hasNewerVersion = isNewerVersion(manifestVersion, currentVersion);
         const versionsAreEqual = manifestVersion === currentVersion;
-        
+
         // Don't show if versions are equal (already up to date)
         if (versionsAreEqual) {
           console.log('Versions are equal, not showing modal');
@@ -276,12 +269,12 @@ export function UpdateCheck() {
           }
           return;
         }
-        
-        const shouldShow = (manifest.force === true && !isAlreadyInstalled && !wasDismissed) || 
+
+        const shouldShow = (manifest.force === true && !isAlreadyInstalled && !wasDismissed) ||
           (hasNewerVersion && !wasDismissed && !isAlreadyInstalled);
-        
+
         console.log('Has newer version:', hasNewerVersion, 'Should show:', shouldShow);
-        
+
         if (shouldShow) {
           setApkUrl(manifest.apk_url);
           setManifestVersion(manifestVersion);
