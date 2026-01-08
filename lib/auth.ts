@@ -176,8 +176,8 @@ export const refreshAccessToken = async (): Promise<string | null> => {
       return null
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"
-    const refreshUrl = `${baseUrl}/auth/refresh`
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net/"
+    const refreshUrl = `${baseUrl}auth/refresh`
 
     console.log('refreshAccessToken: Attempting to refresh token...')
 
