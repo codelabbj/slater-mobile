@@ -21,22 +21,23 @@ export function MobileBackButtonHandler() {
       window.history.pushState({ screen: 'app' }, '', window.location.href)
     }
 
-    const handleBackButton = (e?: Event) => {
+    const handleBackButton = async (e?: Event) => {
       // Always prevent default browser back behavior
       if (e) {
         e.preventDefault()
         e.stopPropagation()
       }
-      
+
       const currentPath = pathnameRef.current
-      
+      const authenticated = await isAuthenticated()
+
       // CRITICAL: If authenticated, ALWAYS navigate to dashboard (NEVER allow exit)
-      if (isAuthenticated()) {
+      if (authenticated) {
         // Push history state to prevent browser back navigation
         if (typeof window !== 'undefined') {
           window.history.pushState({ screen: 'app' }, '', window.location.href)
         }
-        
+
         // Always navigate to dashboard, even if already there
         // This prevents the app from exiting
         if (currentPath !== "/dashboard") {
@@ -49,25 +50,25 @@ export function MobileBackButtonHandler() {
         }
         return // Always return early for authenticated users
       }
-      
+
       // If not authenticated and not on login/root, go to login
-      if (!isAuthenticated() && currentPath !== "/login" && currentPath !== "/") {
+      if (!authenticated && currentPath !== "/login" && currentPath !== "/") {
         if (typeof window !== 'undefined') {
           window.history.pushState({ screen: 'app' }, '', window.location.href)
         }
         router.push("/login")
         return
       }
-      
+
       // Only allow exit if not authenticated and on login/root screen
       // For authenticated users, we never allow exit - always go to dashboard
-      if (!isAuthenticated() && (currentPath === "/login" || currentPath === "/")) {
+      if (!authenticated && (currentPath === "/login" || currentPath === "/")) {
         // Allow natural exit only for unauthenticated users on login/root
         return
       }
-      
+
       // Fallback: navigate to appropriate screen
-      if (isAuthenticated()) {
+      if (authenticated) {
         // Push history state to prevent browser back
         if (typeof window !== 'undefined') {
           window.history.pushState({ screen: 'app' }, '', window.location.href)

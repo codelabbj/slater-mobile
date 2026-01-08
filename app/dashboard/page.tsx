@@ -376,12 +376,12 @@ function DashboardContent() {
                         <CarouselContent>
                           {advertisements.map((ad, index) => (
                             <CarouselItem key={index}>
-                              <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48">
+                              <div className="relative w-full flex justify-center">
                                 {!adImageErrors.has(index) ? (
                                   <img
                                     src={ad.image}
                                     alt={ad.title || "Publicité"}
-                                    className="object-cover cursor-pointer transition-transform duration-300 hover:scale-105 w-full h-full rounded-2xl sm:rounded-3xl"
+                                    className="max-w-full h-auto cursor-pointer transition-transform duration-300 hover:scale-105 rounded-2xl sm:rounded-3xl shadow-lg"
                                     onClick={() => {
                                       if (ad.link) {
                                         window.open(ad.link, "_blank", "noopener,noreferrer")
@@ -390,7 +390,7 @@ function DashboardContent() {
                                     onError={() => handleImageError(index)}
                                   />
                                 ) : (
-                                  <div className="relative w-full h-32 sm:h-40 md:h-44 lg:h-48 bg-muted/20 flex items-center justify-center rounded-2xl sm:rounded-3xl">
+                                  <div className="w-full min-h-[120px] bg-muted/20 flex items-center justify-center rounded-2xl sm:rounded-3xl shadow-lg">
                                     <div className="text-center p-4 text-muted-foreground">
                                       <p className="text-sm sm:text-base font-semibold text-foreground/80">Espace publicitaire</p>
                                       <p className="text-xs text-muted-foreground mt-1">Vos campagnes apparaîtront ici</p>
