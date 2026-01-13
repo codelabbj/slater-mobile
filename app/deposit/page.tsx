@@ -83,6 +83,8 @@ function DepositContent() {
   const [moovUssdCode, setMoovUssdCode] = useState<string | null>(null)
   const [showOrangeUssdDialog, setShowOrangeUssdDialog] = useState(false)
   const [orangeUssdCode, setOrangeUssdCode] = useState<string | null>(null)
+  const [showMtnUssdDialog, setShowMtnUssdDialog] = useState(false)
+  const [mtnUssdCode, setMtnUssdCode] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -211,6 +213,16 @@ function DepositContent() {
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard
         .writeText(orangeUssdCode)
+        .then(() => toast.success("Code copié dans le presse-papiers"))
+        .catch(() => toast.error("Impossible de copier le code"))
+    }
+  }
+
+  const handleCopyMtnCode = () => {
+    if (!mtnUssdCode) return
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(mtnUssdCode)
         .then(() => toast.success("Code copié dans le presse-papiers"))
         .catch(() => toast.error("Impossible de copier le code"))
     }
@@ -621,6 +633,51 @@ function DepositContent() {
           }, 500)
           return
         }
+      }
+
+      // Check if MTN network with connect deposit_api and redirect to phone dial
+      const isMtnNetwork = networkName.includes("mtn") || networkPublicName.includes("mtn")
+      const hasMtnConnectDepositApi = selectedNetwork?.deposit_api === "connect"
+      const isBurkinaFasoMtn = selectedNetwork?.country_code?.toLowerCase() === "bf"
+
+      // Use BF-specific phone number if available, otherwise fallback to regular
+      const mtnMerchantPhone = isBurkinaFasoMtn && settings?.bf_mtn_marchand_phone
+        ? settings.bf_mtn_marchand_phone
+        : settings?.mtn_marchand_phone
+
+      console.log("MTN Check:", {
+        networkName,
+        networkPublicName,
+        isMtnNetwork,
+        depositApi: selectedNetwork?.deposit_api,
+        hasMtnConnectDepositApi,
+        hasSettings: !!settings,
+        countryCode: selectedNetwork?.country_code,
+        isBurkinaFaso: isBurkinaFasoMtn,
+        mtnMerchantPhone,
+      })
+
+      if (isMtnNetwork && hasMtnConnectDepositApi && mtnMerchantPhone) {
+        const transactionAmount = Number(amount)
+        const ussdCode = `*133*7*${mtnMerchantPhone}#`
+        const encodedUssd = ussdCode.replace(/#/g, "%23")
+        const telLink = `tel:${encodedUssd}`
+
+        console.log("Opening MTN USSD code:", ussdCode, "Tel link:", telLink)
+        setMtnUssdCode(ussdCode)
+        setShowMtnUssdDialog(true)
+
+        // Use setTimeout to ensure settings are available and allow toast to show
+        setTimeout(() => {
+          // Try using anchor element click which works better on some mobile browsers
+          const link = document.createElement("a")
+          link.href = telLink
+          link.style.display = "none"
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        }, 500)
+        return
       }
 
       // Check if transaction_link exists in the response (fallback for other networks)
@@ -1315,6 +1372,48 @@ function DepositContent() {
           </div>
           <div className="flex justify-end pt-4">
             <Button onClick={() => setShowOrangeUssdDialog(false)}>Fermer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MTN USSD Dialog */}
+      <Dialog open={showMtnUssdDialog} onOpenChange={setShowMtnUssdDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Finaliser le paiement MTN</DialogTitle>
+            <DialogDescription>
+              Votre dépôt a été créé avec succès. Pour finaliser la transaction MTN, copiez le code USSD ci-dessous et collez-le dans le composeur téléphonique de votre téléphone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Code USSD à composer</Label>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={mtnUssdCode ?? ""}
+                  className="font-mono text-base"
+                />
+                <Button type="button" onClick={handleCopyMtnCode}>
+                  Copier
+                </Button>
+              </div>
+            </div>
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <p className="text-sm font-medium">Instructions :</p>
+              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Cliquez sur le bouton &quot;Copier&quot; pour copier le code USSD</li>
+                <li>Ouvrez le composeur téléphonique de votre téléphone</li>
+                <li>Collez le code dans le composeur</li>
+                <li>Appuyez sur &quot;Appeler&quot; pour valider la transaction MTN</li>
+              </ol>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Si la composition automatique n&apos;a pas fonctionné, utilisez cette méthode pour continuer votre transaction MTN.
+            </p>
+          </div>
+          <div className="flex justify-end pt-4">
+            <Button onClick={() => setShowMtnUssdDialog(false)}>Fermer</Button>
           </div>
         </DialogContent>
       </Dialog>

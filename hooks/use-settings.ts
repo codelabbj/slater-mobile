@@ -5,6 +5,10 @@ interface Settings {
   referral_bonus?: boolean
   moov_marchand_phone?: string | null
   orange_marchand_phone?: string | null
+  mtn_marchand_phone?: string | null
+  bf_moov_marchand_phone?: string | null
+  bf_orange_marchand_phone?: string | null
+  bf_mtn_marchand_phone?: string | null
   [key: string]: any
 }
 
