@@ -132,7 +132,7 @@ function Carousel({
   )
 }
 
-function CarouselContent({ className, ...props }: React.ComponentProps<'div'>) {
+function CarouselContent({ className, children, ...props }: React.ComponentProps<'div'>) {
   const { carouselRef, orientation } = useCarousel()
 
   return (
@@ -148,7 +148,9 @@ function CarouselContent({ className, ...props }: React.ComponentProps<'div'>) {
           className,
         )}
         {...props}
-      />
+      >
+        {children}
+      </div>
     </div>
   )
 }

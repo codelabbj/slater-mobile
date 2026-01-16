@@ -50,6 +50,7 @@ function DashboardContent() {
   const [adImageErrors, setAdImageErrors] = useState<Set<number>>(new Set())
   const [currentAdIndex, setCurrentAdIndex] = useState(0)
   const [isCarouselPaused, setIsCarouselPaused] = useState(false)
+  const [carouselApi, setCarouselApi] = useState<any>(null)
   const { theme, setTheme } = useTheme()
   const [messageMenuOpen, setMessageMenuOpen] = useState(false)
 
@@ -172,14 +173,14 @@ function DashboardContent() {
 
   // Auto-play carousel
   useEffect(() => {
-    if (!advertisements || advertisements.length <= 1 || isCarouselPaused) return
+    if (!advertisements || advertisements.length <= 1 || isCarouselPaused || !carouselApi) return
 
     const interval = setInterval(() => {
-      setCurrentAdIndex((prev) => (prev + 1) % advertisements.length)
+      carouselApi.scrollNext()
     }, 5000) // Change slide every 5 seconds
 
     return () => clearInterval(interval)
-  }, [advertisements, isCarouselPaused])
+  }, [advertisements, isCarouselPaused, carouselApi])
 
   const handleImageError = (index: number) => {
     setAdImageErrors(prev => new Set([...prev, index]))
@@ -379,15 +380,16 @@ function DashboardContent() {
                       <Carousel
                         opts={{
                           align: "start",
-                          loop: true,
+                          loop: advertisements.length > 1,
                         }}
+                        setApi={setCarouselApi}
                         className="w-full"
                         onTouchStart={() => setIsCarouselPaused(true)}
                         onTouchEnd={() => setIsCarouselPaused(false)}
                       >
-                        <CarouselContent>
+                        <CarouselContent className="w-full">
                           {advertisements.map((ad, index) => (
-                            <CarouselItem key={index}>
+                            <CarouselItem key={index} className="md:basis-full">
                               <div className="relative w-full flex justify-center">
                                 {!adImageErrors.has(index) ? (
                                   <img
