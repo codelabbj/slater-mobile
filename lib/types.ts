@@ -33,6 +33,7 @@ export interface Platform {
   street?: string
   deposit_tuto_link?: string | null
   withdrawal_tuto_link?: string | null
+  why_withdrawal_fail?: string | null
 }
 
 export interface UserPhone {
@@ -75,6 +76,7 @@ export interface Transaction {
     enable?: boolean
     deposit_tuto_link?: string | null
     withdrawal_tuto_link?: string | null
+    why_withdrawal_fail?: string | null
     city?: string
     street?: string
     minimun_deposit?: number

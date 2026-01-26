@@ -9,12 +9,16 @@ export default function HomePage() {
   const router = useRouter()
 
   useEffect(() => {
-    checkForUpdates();
-    if (isAuthenticated()) {
-      router.push("/dashboard")
-    } else {
-      router.push("/login")
+    const initApp = async () => {
+      await checkForUpdates();
+      const authenticated = await isAuthenticated();
+      if (authenticated) {
+        router.push("/dashboard")
+      } else {
+        router.push("/login")
+      }
     }
+    initApp();
   }, [router])
 
   return (
