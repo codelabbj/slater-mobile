@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { mobileBackButtonHandler } from "@/lib/mobile-back-button"
-import { isAuthenticated } from "@/lib/auth"
+import { ensureValidToken } from "@/lib/auth"
 
 export function MobileBackButtonHandler() {
   const router = useRouter()
@@ -29,7 +29,7 @@ export function MobileBackButtonHandler() {
       }
 
       const currentPath = pathnameRef.current
-      const authenticated = await isAuthenticated()
+      const authenticated = await ensureValidToken()
 
       // CRITICAL: If authenticated, ALWAYS navigate to dashboard (NEVER allow exit)
       if (authenticated) {

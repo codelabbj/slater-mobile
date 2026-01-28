@@ -66,8 +66,10 @@ api.interceptors.response.use(
           }
 
           console.log('Making refresh request...')
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"
+          const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`
           const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"}auth/refresh`,
+            `${normalizedBaseUrl}auth/refresh`,
             { refresh },
             {
               headers: {

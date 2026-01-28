@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { isAuthenticated } from "@/lib/auth"
+import { ensureValidToken } from "@/lib/auth"
 import { checkForUpdates } from '@/lib/updater';
 
 export default function HomePage() {
@@ -11,7 +11,7 @@ export default function HomePage() {
   useEffect(() => {
     const initApp = async () => {
       await checkForUpdates();
-      const authenticated = await isAuthenticated();
+      const authenticated = await ensureValidToken();
       if (authenticated) {
         router.push("/dashboard")
       } else {
