@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "259484846842",
-    "project_id": "slaterapp-a9e14",
-    "storage_bucket": "slaterapp-a9e14.firebasestorage.app"
+    "project_number": "955218384043",
+    "project_id": "slater-79f2c",
+    "storage_bucket": "slater-79f2c.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:259484846842:android:c5265877e38d0a7c331743",
+        "mobilesdk_app_id": "1:955218384043:android:99ea3054aa1ed4620a53ee",
         "android_client_info": {
           "package_name": "com.slater.android"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA1MPhifSa-Qg0bgVXnjFe_YadndVBqBJ4"
+          "current_key": "AIzaSyAjJDJSlNlDEPsNSoTAuhS6c1WLFKf_1bk"
         }
       ],
       "services": {
