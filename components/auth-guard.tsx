@@ -12,18 +12,26 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        const { getAccessToken } = await import("@/lib/auth")
-        const token = await getAccessToken()
+        const { ensureValidToken } = await import("@/lib/auth")
+        let isValid = await ensureValidToken()
 
-        if (!token) {
-          console.log('No access token found, redirecting to login')
+        // Retry briefly to avoid false negatives on initial load
+        if (!isValid) {
+          for (let attempt = 1; attempt <= 2 && !isValid; attempt++) {
+            await new Promise((resolve) => setTimeout(resolve, 150))
+            isValid = await ensureValidToken()
+          }
+        }
+
+        if (!isValid) {
+          console.log("AuthGuard: token invalid, redirecting to login")
           router.push("/login")
           return
         }
 
         setIsChecking(false)
       } catch (error) {
-        console.error('Error checking authentication:', error)
+        console.error("Error checking authentication:", error)
         router.push("/login")
       }
     }
