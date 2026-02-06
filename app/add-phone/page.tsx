@@ -47,9 +47,11 @@ function AddPhoneContent() {
 
   // Fetch networks
   const { data: networks, isLoading: loadingNetworks } = useQuery({
-    queryKey: ["networks"],
+    queryKey: ["networks", flow],
     queryFn: async () => {
-      const response = await api.get<Network[]>("/mobcash/network")
+      const response = await api.get<Network[]>("/mobcash/network", {
+        params: { type: flow === "withdraw" ? "withdrawal" : "deposit" }
+      })
       return response.data.filter((n) => n.active_for_deposit)
     },
   })
@@ -113,7 +115,7 @@ function AddPhoneContent() {
     e.preventDefault()
 
     const digitsOnly = formatPhoneNumber(phone)
-    
+
     if (!phone || digitsOnly.length < 6) {
       toast.error("Veuillez saisir un numéro de téléphone valide")
       return
@@ -144,7 +146,7 @@ function AddPhoneContent() {
           <CardHeader>
             <CardTitle>Ajouter un numéro de téléphone</CardTitle>
             <CardDescription>
-              {preselectedNetworkId 
+              {preselectedNetworkId
                 ? `Ajoutez un nouveau numéro pour ${networks?.find(n => n.id.toString() === preselectedNetworkId)?.public_name || 'le réseau sélectionné'}`
                 : "Ajoutez un nouveau numéro pour vos transactions"
               }

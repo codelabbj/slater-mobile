@@ -105,7 +105,9 @@ function DepositContent() {
   const { data: platforms, isLoading: loadingPlatforms } = useQuery({
     queryKey: ["platforms"],
     queryFn: async () => {
-      const response = await api.get<Platform[]>("/mobcash/plateform")
+      const response = await api.get<Platform[]>("/mobcash/plateform", {
+        params: { type: "deposit" }
+      })
       return response.data.filter((p) => p.enable)
     },
   })
@@ -127,7 +129,9 @@ function DepositContent() {
   const { data: networks, isLoading: loadingNetworks } = useQuery({
     queryKey: ["networks"],
     queryFn: async () => {
-      const response = await api.get<Network[]>("/mobcash/network")
+      const response = await api.get<Network[]>("/mobcash/network", {
+        params: { type: "deposit" }
+      })
       return response.data.filter((n) => n.active_for_deposit)
     },
     enabled: !!selectedPlatform,
@@ -811,8 +815,8 @@ function DepositContent() {
                         setTimeout(() => setStep(2), 100)
                       }}
                       className={`group relative p-3 sm:p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-95 ${selectedPlatform?.id === platform.id
-                          ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
-                          : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
+                        ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
+                        : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
                         }`}
                     >
                       {selectedPlatform?.id === platform.id && (
@@ -860,8 +864,8 @@ function DepositContent() {
                           setTimeout(() => setStep(3), 100)
                         }}
                         className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedBetId?.id === betId.id
-                            ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
-                            : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
+                          ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
+                          : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
                           }`}
                       >
                         <div className="flex items-center justify-between">
@@ -943,8 +947,8 @@ function DepositContent() {
                         setTimeout(() => setStep(4), 100)
                       }}
                       className={`group relative p-3 sm:p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedNetwork?.id === network.id
-                          ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
-                          : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
+                        ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
+                        : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
                         }`}
                     >
                       {selectedNetwork?.id === network.id && (
@@ -988,8 +992,8 @@ function DepositContent() {
                             setTimeout(() => setStep(5), 100)
                           }}
                           className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedPhone?.id === phone.id
-                              ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
-                              : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
+                            ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
+                            : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
                             }`}
                         >
                           <div className="flex items-center justify-between">
