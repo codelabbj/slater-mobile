@@ -104,11 +104,11 @@ function WithdrawContent() {
 
   // Fetch bet IDs
   const { data: betIds, isLoading: loadingBetIds } = useQuery({
-    queryKey: ["bet-ids", selectedPlatform?.id],
+    queryKey: ["bet-ids", "withdrawal", selectedPlatform?.id],
     queryFn: async () => {
       if (!selectedPlatform) return []
       const response = await api.get<UserAppId[]>("/mobcash/user-app-id", {
-        params: { app_name: selectedPlatform.id },
+        params: { app_name: selectedPlatform.id, type: "withdrawal" },
       })
       return response.data
     },
@@ -132,11 +132,11 @@ function WithdrawContent() {
 
   // Fetch phones filtered by selected network
   const { data: phones, isLoading: loadingPhones } = useQuery({
-    queryKey: ["phones", selectedNetworkKey],
+    queryKey: ["phones", "withdrawal", selectedNetworkKey],
     queryFn: async () => {
       if (!selectedNetworkKey) return []
       const response = await api.get<UserPhone[]>("/mobcash/user-phone/", {
-        params: { network: selectedNetwork?.uid || selectedNetwork?.id },
+        params: { network: selectedNetwork?.uid || selectedNetwork?.id, type: "withdrawal" },
       })
       return response.data
     },
@@ -227,7 +227,7 @@ function WithdrawContent() {
     },
     onSuccess: () => {
       toast.success("Identifiant mis à jour")
-      queryClient.invalidateQueries({ queryKey: ["bet-ids"] })
+      queryClient.invalidateQueries({ queryKey: ["bet-ids", "withdrawal"] })
       resetBetEditDialog()
     },
     onError: (error: any) => {
@@ -246,7 +246,7 @@ function WithdrawContent() {
     },
     onSuccess: () => {
       toast.success("Identifiant supprimé")
-      queryClient.invalidateQueries({ queryKey: ["bet-ids"] })
+      queryClient.invalidateQueries({ queryKey: ["bet-ids", "withdrawal"] })
     },
     onError: (error: any) => {
       toast.error(error?.message || "Erreur lors de la suppression de l'identifiant")
@@ -270,7 +270,7 @@ function WithdrawContent() {
     },
     onSuccess: () => {
       toast.success("Numéro mis à jour")
-      queryClient.invalidateQueries({ queryKey: ["phones"] })
+      queryClient.invalidateQueries({ queryKey: ["phones", "withdrawal"] })
       resetPhoneEditDialog()
     },
     onError: (error: any) => {
@@ -290,7 +290,7 @@ function WithdrawContent() {
     },
     onSuccess: () => {
       toast.success("Numéro supprimé")
-      queryClient.invalidateQueries({ queryKey: ["phones"] })
+      queryClient.invalidateQueries({ queryKey: ["phones", "withdrawal"] })
     },
     onError: (error: any) => {
       toast.error(error?.message || "Erreur lors de la suppression du numéro")
