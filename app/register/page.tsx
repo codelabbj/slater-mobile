@@ -13,6 +13,7 @@ import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import api from "@/lib/api"
 import { useSettings } from "@/hooks/use-settings"
@@ -25,6 +26,9 @@ const registerSchema = z.object({
   password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
   re_password: z.string().min(6, "Veuillez confirmer votre mot de passe"),
   referral_code: z.string().optional(),
+  accept_terms: z.boolean().refine((val) => val === true, {
+    message: "Vous devez accepter les conditions d'utilisation",
+  }),
 })
 
 
@@ -39,10 +43,17 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      accept_terms: false,
+    }
   })
+
+  const acceptTermsValue = watch("accept_terms")
 
   const onSubmit = async (data: any) => {
     setIsLoading(true)
@@ -220,6 +231,23 @@ export default function RegisterPage() {
                 {errors.referral_code && <p className="text-sm text-destructive">{errors.referral_code?.message}</p>}
               </div>
             )}
+
+            <div className="flex items-start space-x-3 pt-2">
+              <Checkbox
+                id="accept_terms"
+                checked={acceptTermsValue}
+                onCheckedChange={(checked) => setValue("accept_terms", checked as boolean, { shouldValidate: true })}
+                className="mt-1"
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="accept_terms" className="text-sm font-normal text-muted-foreground leading-relaxed">
+                  En cliquant sur S'inscrire, vous acceptez nos <Link href="/privacy-policy" target="_blank" className="font-semibold text-primary hover:underline">conditions d'utilisation</Link> et confirmez que vous avez plus de 18 ans.
+                </Label>
+                {errors.accept_terms && (
+                  <p className="text-xs text-destructive">{errors.accept_terms.message as string}</p>
+                )}
+              </div>
+            </div>
 
             <Button type="submit" variant="glow" className="w-full mobile-btn-enhanced" disabled={isLoading || settingsLoading}>
               {isLoading ? t("loading") : t("registerButton")}

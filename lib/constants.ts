@@ -35,7 +35,7 @@ export const NETWORK_CHOICES = [
 ] as const;
 
 export const API_CHOICES = [
-  ["connect", "Blaffa Connect"],
+  ["connect", "Slater Connect"],
 ] as const;
 
 // Type definitions for better TypeScript support

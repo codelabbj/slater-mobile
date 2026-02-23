@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Youtube } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { AuthGuard } from "@/components/auth-guard"
 import api from "@/lib/api"
 import type { Platform, Network, UserPhone, UserAppId } from "@/lib/types"
@@ -58,6 +59,7 @@ function DepositContent() {
 
   // Step state
   const [step, setStep] = useState(1)
+  const [acceptTerms, setAcceptTerms] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
   const [selectedBetId, setSelectedBetId] = useState<UserAppId | null>(null)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
@@ -747,6 +749,10 @@ function DepositContent() {
         toast.error(`Le montant maximum est ${selectedPlatform.max_deposit} FCFA`)
         return
       }
+      if (!acceptTerms) {
+        toast.error("Veuillez accepter les conditions d'utilisation")
+        return
+      }
       setShowConfirmDialog(true)
       return
     }
@@ -1137,6 +1143,18 @@ function DepositContent() {
                   </p>
                 </div>
               )}
+
+              <div className="flex items-start space-x-3 pt-2">
+                <Checkbox
+                  id="terms-deposit"
+                  checked={acceptTerms}
+                  onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                  className="mt-1"
+                />
+                <Label htmlFor="terms-deposit" className="text-sm leading-relaxed text-muted-foreground font-normal">
+                  En cliquant sur Suivant, vous acceptez nos <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#002d72] hover:underline">conditions d'utilisation</a> et confirmez que vous avez plus de 18 ans.
+                </Label>
+              </div>
             </CardContent>
           </Card>
         )}
