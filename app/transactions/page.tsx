@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { ArrowLeft, ArrowDownCircle, ArrowUpCircle, Search, Filter, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -74,6 +75,7 @@ function TransactionsContent() {
       case "accept":
         return <Badge className="bg-primary">{statusLabel}</Badge>
       case "error":
+      case "annuler":
         return <Badge variant="destructive">{statusLabel}</Badge>
       case "init_payment":
         return <Badge variant="secondary">{statusLabel}</Badge>
@@ -215,7 +217,10 @@ function TransactionsContent() {
         ) : (
           <div className="space-y-3">
             {filteredTransactions.map((transaction) => (
-              <Card key={transaction.id} className="overflow-hidden">
+              <Link key={transaction.id} href={`/transactions/detail?id=${transaction.id}`} className="block">
+                <Card 
+                  className="overflow-hidden active:scale-[0.98] transition-all hover:bg-accent/50" 
+                >
                 <CardContent className="p-4">
                   {/* Transaction Header */}
                   <div className="flex items-start justify-between mb-3">
@@ -269,6 +274,7 @@ function TransactionsContent() {
                   </div>
                 </CardContent>
               </Card>
+              </Link>
             ))}
           </div>
         )}

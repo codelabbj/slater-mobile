@@ -621,7 +621,10 @@ function DashboardContent() {
                 </Card>
               ) : (
                 transactions.slice(0, 4).map((transaction, index) => (
-                  <Card key={transaction.id} className="glass-panel hover:shadow-lg transition-all duration-200 border-primary/10 rounded-2xl sm:rounded-3xl relative overflow-hidden">
+                  <Link key={transaction.id} href={`/transactions/detail?id=${transaction.id}`} className="block">
+                  <Card 
+                    className="glass-panel hover:shadow-lg transition-all duration-200 border-primary/10 rounded-2xl sm:rounded-3xl relative overflow-hidden active:scale-[0.98]"
+                  >
                     {/* Color bar at top */}
                     <div className="absolute inset-x-0 top-0 h-1.5"
                          style={{
@@ -656,12 +659,13 @@ function DashboardContent() {
                               <Badge className={`text-xs ${
                                 transaction.status === "accept"
                                   ? "bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20"
-                                  : transaction.status === "error"
+                                  : (transaction.status === "error" || transaction.status === "annuler")
                                   ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20"
                                   : "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/20"
                               }`}>
                                 {transaction.status === "accept" ? "Succès" :
-                                 transaction.status === "error" ? "Échec" : "En attente"}
+                                 transaction.status === "error" ? "Échec" :
+                                 transaction.status === "annuler" ? "Annulé" : "En attente"}
                               </Badge>
                             </div>
                             <p className="text-xs sm:text-sm text-muted-foreground truncate">
@@ -686,6 +690,7 @@ function DashboardContent() {
                       </div>
                     </CardContent>
                   </Card>
+                  </Link>
                 ))
               )}
             </div>

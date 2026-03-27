@@ -4,7 +4,7 @@ import { useState, useEffect, MouseEvent } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Check, Plus, Pencil, Trash } from "lucide-react"
+import { ArrowLeft, Check, Plus, Pencil, Trash, Loader2 } from "lucide-react"
 import { TransactionProgressBar } from "@/components/ui/transaction-progress-bar"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { AuthGuard } from "@/components/auth-guard"
 import api from "@/lib/api"
-import type { Platform, Network, UserPhone, UserAppId } from "@/lib/types"
+import type { Platform, Network, UserPhone, UserAppId, Transaction } from "@/lib/types"
 import { useSettings } from "@/hooks/use-settings"
 
 const COUNTRY_OPTIONS = [
@@ -61,6 +61,9 @@ function DepositContent() {
   const [step, setStep] = useState(1)
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
+
+  const hasHelpStep = !!(selectedPlatform?.deposit_tuto_link)
+  const totalSteps = hasHelpStep ? 6 : 5
   const [selectedBetId, setSelectedBetId] = useState<UserAppId | null>(null)
   const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null)
   const [selectedPhone, setSelectedPhone] = useState<UserPhone | null>(null)
@@ -88,6 +91,9 @@ function DepositContent() {
   const [orangeUssdCode, setOrangeUssdCode] = useState<string | null>(null)
   const [showMtnUssdDialog, setShowMtnUssdDialog] = useState(false)
   const [mtnUssdCode, setMtnUssdCode] = useState<string | null>(null)
+  const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null)
+  const [lastTransactionLoading, setLastTransactionLoading] = useState(false)
+  const [lastTransactionActionType, setLastTransactionActionType] = useState<"cancel" | "finalize" | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -101,7 +107,14 @@ function DepositContent() {
       }
       window.localStorage.removeItem("depositReturnData")
     }
-  }, [])
+
+    // Refresh all API data on mount
+    queryClient.invalidateQueries({ queryKey: ["platforms"] })
+    queryClient.invalidateQueries({ queryKey: ["bet-ids"] })
+    queryClient.invalidateQueries({ queryKey: ["networks"] })
+    queryClient.invalidateQueries({ queryKey: ["phones"] })
+    queryClient.invalidateQueries({ queryKey: ["last-transaction"] })
+  }, [queryClient])
 
   // Fetch platforms
   const { data: platforms, isLoading: loadingPlatforms } = useQuery({
@@ -138,6 +151,38 @@ function DepositContent() {
     },
     enabled: !!selectedPlatform,
   })
+
+  // Fetch last pending transaction
+  const { data: pendingTransaction, isLoading: loadingLastTransaction } = useQuery({
+    queryKey: ["last-transaction", "deposit"],
+    queryFn: async () => {
+      try {
+        const response = await api.get<any>("/mobcash/last-transaction")
+        console.log("Last transaction response:", response.data)
+        
+        // Handle both single object and array responses
+        const data = Array.isArray(response.data) ? response.data[0] : response.data
+        
+        if (data && (data.status === "pending" || data.status === "init_payment")) {
+          console.log("Found pending/init_payment transaction:", data)
+          return data as Transaction
+        }
+        return null
+      } catch (error) {
+        console.error("Error fetching last transaction:", error)
+        return null
+      }
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds to catch status updates
+  })
+
+  useEffect(() => {
+    if (pendingTransaction) {
+      setLastTransaction(pendingTransaction)
+    } else {
+      setLastTransaction(null)
+    }
+  }, [pendingTransaction])
 
   const selectedNetworkKey =
     selectedNetwork?.uid || (selectedNetwork?.id ? String(selectedNetwork.id) : undefined)
@@ -335,6 +380,46 @@ function DepositContent() {
     },
     onError: (error: any) => {
       toast.error(error?.message || "Erreur lors de la suppression du numéro")
+    },
+  })
+
+  const cancelLastTransactionMutation = useMutation({
+    mutationFn: async (reference: string) => {
+      setLastTransactionActionType("cancel")
+      await api.post("/mobcash/cancel-transaction", { reference })
+    },
+    onSuccess: () => {
+      toast.success("Transaction annulée")
+      setLastTransaction(null)
+      queryClient.invalidateQueries({ queryKey: ["last-transaction"] })
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Erreur lors de l'annulation")
+    },
+    onSettled: () => {
+      setLastTransactionActionType(null)
+    },
+  })
+
+  const finalizeLastTransactionMutation = useMutation({
+    mutationFn: async (reference: string) => {
+      setLastTransactionActionType("finalize")
+      const response = await api.post<Transaction>("/mobcash/finalize-transaction-user", { reference })
+      return response.data
+    },
+    onSuccess: (data) => {
+      toast.success("Transaction finalisée")
+      setLastTransaction(null)
+      queryClient.invalidateQueries({ queryKey: ["last-transaction"] })
+      if (data?.id) {
+        router.push(`/transactions/detail?id=${data.id}`)
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Erreur lors de la finalisation")
+    },
+    onSettled: () => {
+      setLastTransactionActionType(null)
     },
   })
 
@@ -692,7 +777,11 @@ function DepositContent() {
         setTransactionLink(data.transaction_link)
         setShowTransactionLinkDialog(true)
       } else {
-        router.push("/dashboard")
+        if (data?.id) {
+          router.push(`/transactions/detail?id=${data.id}`)
+        } else {
+          router.push("/dashboard")
+        }
       }
     },
     onError: (error: any) => {
@@ -719,6 +808,12 @@ function DepositContent() {
   })
 
   const handleNext = () => {
+    // Prevent starting a new transaction if there is a pending one of any type
+    if (lastTransaction) {
+      toast.error(`Vous avez déjà une transaction de ${lastTransaction.type_trans === 'deposit' ? 'dépôt' : 'retrait'} en cours. Veuillez la finaliser ou l'annuler avant d'en créer une nouvelle.`)
+      return
+    }
+
     if (step === 1 && !selectedPlatform) {
       toast.error("Veuillez sélectionner une plateforme")
       return
@@ -756,6 +851,25 @@ function DepositContent() {
       setShowConfirmDialog(true)
       return
     }
+
+    if (step === 4) {
+      if (!selectedPhone) {
+        toast.error("Veuillez sélectionner un numéro de téléphone")
+        return
+      }
+      if (hasHelpStep) {
+        setStep(5)
+      } else {
+        setStep(6)
+      }
+      return
+    }
+
+    if (step === 5) {
+      setStep(6)
+      return
+    }
+
     setStep(step + 1)
   }
 
@@ -783,14 +897,14 @@ function DepositContent() {
             </Button>
             <div className="flex-1">
               <h1 className="text-lg font-bold">{t("deposit")}</h1>
-              <p className="text-sm text-muted-foreground">Étape {step} sur 5</p>
+              <p className="text-sm text-muted-foreground">Étape {step > 5 && !hasHelpStep ? 5 : step} sur {totalSteps}</p>
             </div>
           </div>
 
           {/* Modern Progress Bar */}
           <TransactionProgressBar
-            currentStep={step}
-            totalSteps={5}
+            currentStep={step > 5 && !hasHelpStep ? 5 : step}
+            totalSteps={totalSteps}
             type="deposit"
           />
         </div>
@@ -798,6 +912,80 @@ function DepositContent() {
 
 
       <main className="px-4 py-4 space-y-4">
+        {/* Last Transaction Summary Section - Only show if it matches the current page type */}
+        {lastTransaction && lastTransaction.type_trans === 'deposit' && (
+          <Card className="border-2 border-primary/20 bg-primary/5 shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500 rounded-2xl sm:rounded-3xl">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-bold flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                    Transaction en cours
+                  </CardTitle>
+                  <CardDescription>Vous avez une transaction en attente</CardDescription>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Référence</p>
+                  <p className="text-sm font-mono font-bold text-primary">#{lastTransaction.reference}</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Plateforme</p>
+                  <div className="flex items-center gap-2">
+                    {lastTransaction.app_details?.image && (
+                      <img src={lastTransaction.app_details.image} alt="" className="w-5 h-5 object-contain" />
+                    )}
+                    <p className="font-semibold text-sm">{lastTransaction.app_details?.name || lastTransaction.app}</p>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Montant</p>
+                  <p className="font-bold text-base text-primary">
+                    {lastTransaction.amount.toLocaleString()} <span className="text-xs">FCFA</span>
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">ID Utilisateur</p>
+                  <p className="font-semibold text-sm font-mono">{lastTransaction.user_app_id}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Téléphone</p>
+                  <p className="font-semibold text-sm">{lastTransaction.phone_number}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 h-12 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10"
+                  onClick={() => cancelLastTransactionMutation.mutate(lastTransaction.reference)}
+                  disabled={lastTransactionActionType !== null}
+                >
+                  {lastTransactionActionType === "cancel" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Annuler"
+                  )}
+                </Button>
+                <Button
+                  className="flex-1 h-12 rounded-xl bg-primary shadow-lg shadow-primary/20"
+                  onClick={() => finalizeLastTransactionMutation.mutate(lastTransaction.reference)}
+                  disabled={lastTransactionActionType !== null}
+                >
+                  {lastTransactionActionType === "finalize" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Finaliser"
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Step 1: Select Platform */}
         {step === 1 && (
           <Card className="floating-card border-0 shadow-lg animate-scale-in">
@@ -1069,8 +1257,49 @@ function DepositContent() {
           </Card>
         )}
 
-        {/* Step 5: Enter Amount */}
-        {step === 5 && (
+        {/* Step 5: Help Screen (Conditional) */}
+        {step === 5 && hasHelpStep && (
+          <div className="space-y-6 animate-scale-in">
+            <div className="text-center space-y-2 py-4">
+              <h2 className="text-2xl font-bold section-title">Besoin d'aide ?</h2>
+              <p className="text-muted-foreground text-sm max-w-[280px] mx-auto">
+                Consultez notre tutoriel vidéo pour faciliter votre dépôt.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {selectedPlatform?.deposit_tuto_link && (
+                <div 
+                  onClick={() => window.open(selectedPlatform.deposit_tuto_link!, "_blank")}
+                  className="glass-panel p-4 rounded-3xl border border-primary/10 shadow-lg flex items-center gap-4 cursor-pointer active:scale-95 transition-all hover:bg-white/40"
+                >
+                  <div className="w-16 h-12 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0 border border-primary/20">
+                    <Youtube className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] uppercase tracking-wider text-primary/60 font-bold">Tutoriel vidéo</p>
+                    <p className="text-sm font-bold leading-tight">
+                      Comment effectuer un dépôt sur {selectedPlatform?.name || "1XBET"} ?
+                    </p>
+                  </div>
+                  <ArrowLeft className="h-5 w-5 text-primary/30 rotate-180" />
+                </div>
+              )}
+            </div>
+
+            <div className="pt-8">
+              <Button 
+                onClick={() => setStep(6)}
+                className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white text-base font-extrabold shadow-xl shadow-primary/20"
+              >
+                J'ai compris, continuer
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 6: Enter Amount */}
+        {((step === 6) || (step === 5 && !hasHelpStep)) && (
           <Card className="floating-card">
             <CardHeader>
               <CardTitle className="mobile-heading">{t("enterAmount")}</CardTitle>
@@ -1091,17 +1320,7 @@ function DepositContent() {
                 />
               </div>
 
-              {selectedPlatform?.deposit_tuto_link && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full flex items-center justify-center gap-2"
-                  onClick={() => window.open(selectedPlatform.deposit_tuto_link!, "_blank", "noopener,noreferrer")}
-                >
-                  <Youtube className="h-4 w-4 text-red-600" />
-                  Comment déposer
-                </Button>
-              )}
+              {/* Tutoriels moved to separate step */}
 
               {/* Summary */}
               <div className="p-4 bg-muted rounded-lg space-y-2 text-sm">
@@ -1162,13 +1381,27 @@ function DepositContent() {
         {/* Navigation Buttons */}
         <div className="flex gap-3">
           {step > 1 && (
-            <Button variant="outline" onClick={() => setStep(step - 1)} className="flex-1 h-11">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (step === 6 && hasHelpStep) {
+                  setStep(5)
+                } else if (step === 6 && !hasHelpStep) {
+                  setStep(4)
+                } else {
+                  setStep(step - 1)
+                }
+              }} 
+              className="flex-1 h-11"
+            >
               {t("previous")}
             </Button>
           )}
-          <Button onClick={handleNext} className="flex-1 h-11">
-            {step === 5 ? t("confirm") : t("next")}
-          </Button>
+          {step !== 5 || !hasHelpStep ? (
+            <Button onClick={handleNext} className="flex-1 h-11">
+              {((step === 6) || (step === 5 && !hasHelpStep)) ? t("confirm") : t("next")}
+            </Button>
+          ) : null}
         </div>
       </main>
 

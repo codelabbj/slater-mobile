@@ -13,6 +13,7 @@ export const TRANS_STATUS = [
   ["accept", "Accept"],
   ["error", "Erreur"],
   ["pending", "Pendind"],
+  ["annuler", "Annulé"],
 ] as const;
 
 export const SOURCE_CHOICE = [
