@@ -5,16 +5,18 @@ import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, ArrowDownCircle, ArrowUpCircle, Search, Filter, X } from "lucide-react"
+import { ArrowLeft, ArrowDownCircle, ArrowUpCircle, Search, Filter, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AuthGuard } from "@/components/auth-guard"
+import { AppBar } from "@/components/ui/app-bar"
 import api from "@/lib/api"
 import type { Transaction } from "@/lib/types"
-import { formatDate } from "@/lib/utils"
+import { formatDate, cn } from "@/lib/utils"
+import TransactionCard from "@/components/ui/transaction-card"
 import { 
   TYPE_TRANS, 
   TRANS_STATUS, 
@@ -93,191 +95,135 @@ function TransactionsContent() {
   }
 
   return (
-    <div className="min-h-screen gradient-background mobile-safe-touch">
-      {/* Mobile Header */}
-      <header className="bg-background border-b sticky top-0 z-50 safe-area-top">
-        <div className="px-4 py-3">
-          <div className="flex items-center gap-3 mb-3">
-            <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => router.push("/dashboard")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-lg font-bold flex-1">{t("transactions")}</h1>
+    <div className="min-h-screen pb-24 pt-16 sm:pt-20">
+      <AppBar />
+      <main className="mx-auto w-full max-w-md p-4 sm:p-6 md:p-8">
+        <div className="mb-6">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/dashboard")}
+                className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 rounded-full"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">{t("transactions")}</h1>
+            </div>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-10 w-10"
+              className={cn(
+                "h-9 w-9 rounded-xl transition-all",
+                showFilters ? "bg-primary/10 text-primary" : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+              )}
               onClick={() => setShowFilters(!showFilters)}
             >
-              <Filter className="h-5 w-5" />
+              <Filter className="h-4 w-4" />
             </Button>
           </div>
-          
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+
+          <div className="relative group">
+            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
             <Input
-              placeholder="Rechercher par référence, téléphone ou montant..."
+              placeholder="Rechercher une transaction..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-10 h-11 text-base"
+              className="pl-10 pr-10 h-12 text-sm bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm focus-visible:ring-primary/20 backdrop-blur-sm"
             />
             {searchQuery && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
                 onClick={() => setSearchQuery("")}
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 text-slate-400" />
               </Button>
             )}
           </div>
         </div>
-      </header>
 
-      <main className="px-4 py-4 space-y-4">
-        {/* Mobile Filters */}
+        {/* Filters Panel */}
         {showFilters && (
-          <Card className="mb-4">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t("type")}</label>
+          <div className="mb-6 animate-in slide-in-from-top-4 duration-300">
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">{t("type")}</label>
                   <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-10 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 shadow-xl">
                       <SelectItem value="all">Tous les types</SelectItem>
                       {TYPE_TRANS.map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
+                        <SelectItem key={value} value={value}>{label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t("status")}</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">{t("status")}</label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-10 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 shadow-xl">
                       <SelectItem value="all">Tous les statuts</SelectItem>
                       {TRANS_STATUS.map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
+                        <SelectItem key={value} value={value}>{label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full h-9 rounded-xl border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+                onClick={() => {
+                  setTypeFilter("all")
+                  setStatusFilter("all")
+                  setSearchQuery("")
+                }}
+              >
+                Réinitialiser
+              </Button>
+            </div>
+          </div>
         )}
 
-        {/* Results Summary */}
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {filteredTransactions.length} transaction{filteredTransactions.length > 1 ? "s" : ""}
+        <div className="flex items-center justify-between mb-4 px-1">
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+            {filteredTransactions.length} transaction{filteredTransactions.length > 1 ? "s" : ""} trouvée{filteredTransactions.length > 1 ? "s" : ""}
           </p>
-          {(typeFilter !== "all" || statusFilter !== "all" || searchQuery) && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => {
-                setTypeFilter("all")
-                setStatusFilter("all")
-                setSearchQuery("")
-              }}
-            >
-              Effacer les filtres
-            </Button>
-          )}
         </div>
 
-        {/* Mobile Transactions List */}
-        {isLoading ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
-            <p className="mt-2">{t("loading")}</p>
-          </div>
-        ) : filteredTransactions.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <p className="text-lg font-medium">Aucune transaction trouvée</p>
-            <p className="text-sm mt-1">
-              {searchQuery || typeFilter !== "all" || statusFilter !== "all" 
-                ? "Essayez de modifier vos filtres de recherche" 
-                : "Vous n'avez pas encore de transactions"}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredTransactions.map((transaction) => (
-              <Link key={transaction.id} href={`/transactions/detail?id=${transaction.id}`} className="block">
-                <Card 
-                  className="overflow-hidden active:scale-[0.98] transition-all hover:bg-accent/50" 
-                >
-                <CardContent className="p-4">
-                  {/* Transaction Header */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="flex-shrink-0">
-                        {getTypeIcon(transaction.type_trans)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-base truncate">
-                          {getTransactionTypeLabel(transaction.type_trans)}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          {transaction.app_details?.name && (
-                            <p className="text-sm text-muted-foreground truncate">
-                              {transaction.app_details.name}
-                            </p>
-                          )}
-                          {transaction.app_details?.name && (
-                            <span className="text-sm text-muted-foreground">•</span>
-                          )}
-                          <p className="text-sm text-muted-foreground truncate">
-                            {transaction.reference}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-lg">
-                        {transaction.amount.toLocaleString()} FCFA
-                      </p>
-                      {getStatusBadge(transaction.status)}
-                    </div>
-                  </div>
-
-                  {/* Transaction Details */}
-                  <div className="space-y-2 pt-3 border-t">
-                    {transaction.app_details?.name && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Plateforme</span>
-                        <span className="text-sm font-medium">{transaction.app_details.name}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">{t("phone")}</span>
-                      <span className="text-sm font-medium">{transaction.phone_number}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">{t("date")}</span>
-                      <span className="text-sm font-medium">{formatDate(transaction.created_at)}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              </Link>
-            ))}
-          </div>
-        )}
+        {/* Transactions List */}
+        <div className="space-y-3">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed text-slate-400">
+              <Loader2 className="h-8 w-8 animate-spin mb-2" />
+              <p className="text-sm font-medium">{t("loading")}...</p>
+            </div>
+          ) : filteredTransactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/30 dark:bg-slate-900/30">
+              <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                <Search className="h-8 w-8 text-slate-300" />
+              </div>
+              <p className="text-base font-bold text-slate-900 dark:text-white">Aucun résultat</p>
+              <p className="text-xs text-slate-500 mt-1">Modifiez vos critères de recherche</p>
+            </div>
+          ) : (
+            filteredTransactions.map((transaction) => (
+              <TransactionCard key={transaction.id} transaction={transaction} />
+            ))
+          )}
+        </div>
       </main>
     </div>
   )

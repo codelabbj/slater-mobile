@@ -4,6 +4,8 @@ import { ArrowLeft, ShieldCheck, CheckCircle2, Info, Scale, Users, CreditCard, Z
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { AppBar } from "@/components/ui/app-bar"
+import { cn } from "@/lib/utils"
 
 export default function PrivacyPolicyPage() {
     const router = useRouter()
@@ -91,123 +93,76 @@ export default function PrivacyPolicyPage() {
     ]
 
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden">
-            {/* Dynamic Background Elements */}
-            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
-            <div className="absolute top-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-40 -right-20 w-80 h-80 bg-primary/15 rounded-full blur-[100px] pointer-events-none" />
+    <div className="min-h-screen pb-24 pt-16 sm:pt-20">
+      <AppBar />
 
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b safe-area-top">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-5xl">
-                    <Button variant="ghost" size="icon" className="touch-target rounded-full" onClick={() => router.back()}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                    <div className="flex flex-col items-center">
-                        <h1 className="text-base font-bold">Termes & Conditions</h1>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Slater Official</span>
-                    </div>
-                    <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full">
-                        <ShieldCheck className="h-5 w-5 text-primary" />
-                    </div>
-                </div>
-            </header>
-
-            <main className="container mx-auto px-4 py-8 max-w-5xl relative z-10">
-                {/* Hero Section */}
-                <div className="text-center mb-12 animate-fade-in">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
-                        <BookOpen className="w-3 h-3" />
-                        CONTRAT D'UTILISATION
-                    </div>
-                    <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                        TERMES ET CONDITIONS D'UTILISATION – SLATER
-                    </h1>
-                    <p className="text-muted-foreground text-sm flex items-center justify-center gap-2">
-                        Mise à jour : <span className="font-bold text-foreground">30 Janvier 2026</span>
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    {/* Summary Desktop Navigation */}
-                    <nav className="hidden lg:block lg:col-span-3 sticky top-24" aria-label="Table des matières">
-                        <Card className="border-0 shadow-2xl shadow-primary/5 bg-card/50 backdrop-blur-md overflow-hidden rounded-3xl">
-                            <div className="p-6">
-                                <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                                    <ScrollText className="w-4 h-4 text-primary" />
-                                    Sommaire
-                                </h2>
-                                <ul className="space-y-1">
-                                    {sections.map((section) => (
-                                        <li key={section.id}>
-                                            <a
-                                                href={`#${section.id}`}
-                                                className="block py-2 px-3 rounded-xl text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
-                                            >
-                                                {section.title.split('. ')[1]}
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </Card>
-                    </nav>
-
-                    {/* Content Sections */}
-                    <div className="lg:col-span-9 space-y-6">
-                        {sections.map((section, index) => (
-                            <section
-                                key={section.id}
-                                id={section.id}
-                                className="scroll-mt-24 group animate-scale-up"
-                                style={{ animationDelay: `${index * 50}ms` }}
-                            >
-                                <Card className="border-0 shadow-xl shadow-primary/5 hover:shadow-primary/10 bg-card/40 backdrop-blur-sm rounded-3xl transition-all duration-300 border-l-4 border-l-transparent hover:border-l-primary">
-                                    <CardContent className="p-6 md:p-8">
-                                        <div className="flex gap-4">
-                                            <div className="hidden sm:flex flex-col items-center gap-2">
-                                                <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                                                    {section.icon}
-                                                </div>
-                                                <div className="w-0.5 h-full bg-border/50 group-last:bg-transparent" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex sm:hidden items-center gap-3 mb-3">
-                                                    <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                                        {section.icon}
-                                                    </div>
-                                                </div>
-                                                <h2 className="text-xl font-bold mb-4 flex items-center gap-3">
-                                                    {section.title}
-                                                </h2>
-                                                <p className={`text-muted-foreground leading-relaxed ${section.bold ? 'font-bold text-foreground' : ''}`}>
-                                                    {section.content}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </section>
-                        ))}
-
-                        <footer className="pt-12 pb-8 text-center sm:text-left">
-                            <p className="text-sm text-muted-foreground italic max-w-2xl">
-                                Ceci constitue l'intégralité des termes et conditions régissant votre utilisation du service SLATER. En accédant à nos services, vous confirmez avoir pris connaissance de ces règles.
-                            </p>
-
-                            <div className="mt-8">
-                                <Button
-                                    onClick={() => router.back()}
-                                    variant="outline"
-                                    className="rounded-full px-8 h-12 shadow-md hover:shadow-lg transition-all"
-                                >
-                                    <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Retour à l'application
-                                </Button>
-                            </div>
-                        </footer>
-                    </div>
-                </div>
-            </main>
+      <main className="mx-auto w-full max-w-lg p-4 sm:p-6 md:p-8">
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/dashboard")}
+              className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 rounded-full"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Termes & Conditions</h1>
+          </div>
+          
+          <div className="relative overflow-hidden rounded-3xl p-8 bg-slate-900 shadow-2xl text-center">
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 bg-primary/20 rounded-full blur-2xl opacity-50" />
+            <div className="relative z-10">
+              <div className="h-14 w-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-4 mx-auto border border-white/10 shadow-inner">
+                <ShieldCheck className="h-7 w-7 text-primary" />
+              </div>
+              <h2 className="text-xl font-black text-white mb-1 uppercase tracking-tight">CONTRAT D'UTILISATION</h2>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mise à jour : 30 Janvier 2026</p>
+            </div>
+          </div>
         </div>
+
+        <div className="space-y-4">
+          {sections.map((section, index) => (
+            <div
+              key={section.id}
+              className={cn(
+                "group relative overflow-hidden rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300",
+                section.bold ? "border-primary/20 ring-1 ring-primary/5" : ""
+              )}
+            >
+              <div className="flex gap-4">
+                <div className={cn(
+                  "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform",
+                  section.bold ? "bg-primary/10 text-primary" : "bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:text-primary"
+                )}>
+                  {section.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className={cn(
+                    "text-sm font-bold mb-2",
+                    section.bold ? "text-primary" : "text-slate-900 dark:text-white"
+                  )}>
+                    {section.title}
+                  </h3>
+                  <p className={cn(
+                    "text-xs leading-relaxed",
+                    section.bold ? "text-slate-900 dark:text-white font-bold" : "text-slate-500 dark:text-slate-400"
+                  )}>
+                    {section.content}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <footer className="mt-12 text-center text-[11px] text-slate-400 font-medium px-8 leading-relaxed">
+          <p className="italic">
+            Ceci constitue l'intégralité des termes et conditions régissant votre utilisation du service SLATER. En accédant à nos services, vous confirmez avoir pris connaissance de ces règles.
+          </p>
+        </footer>
+      </main>
+    </div>
     )
 }

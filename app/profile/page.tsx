@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthGuard } from "@/components/auth-guard"
+import { AppBar } from "@/components/ui/app-bar"
+import { Badge } from "@/components/ui/badge"
 import api from "@/lib/api"
 
 interface UserProfile {
@@ -180,76 +182,81 @@ function ProfileContent() {
   }
 
   return (
-    <div className="min-h-screen gradient-background mobile-safe-touch">
+    <div className="min-h-screen pb-24 pt-16 sm:pt-20">
       {/* Header */}
-      <header className="bg-background/80 backdrop-blur-md border-b sticky top-0 z-20 safe-area-top">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 rounded-xl"
-            onClick={() => router.push("/dashboard")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex flex-col">
-            <h1 className="text-lg font-semibold">Profil</h1>
-            <p className="text-xs text-muted-foreground">
-              Gérez vos informations personnelles et votre sécurité
-            </p>
+      <AppBar />
+
+      <main className="mx-auto w-full max-w-lg p-4 sm:p-6 md:p-8">
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/dashboard")}
+              className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 rounded-full"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Mon Profil</h1>
           </div>
         </div>
-      </header>
 
-      <main className="px-4 py-4 max-w-2xl mx-auto space-y-4">
-        {/* Profile Summary */}
-        <Card className="floating-card border-0 shadow-lg">
-          <CardContent className="flex items-center gap-4 pt-4 pb-4">
-            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <UserCircle className="h-8 w-8 sm:h-9 sm:w-9 text-primary" />
+        {/* Profile Summary Card */}
+        <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-background via-muted/20 to-background border backdrop-blur-sm shadow-lg mb-6">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-50" />
+          <div className="relative flex items-center gap-4">
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white shadow-lg">
+              <UserCircle className="h-10 w-10" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">
                 {profile?.first_name} {profile?.last_name}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {profile?.email || "Email indisponible"}
-              </p>
+              </h2>
+              <p className="text-xs text-slate-500 truncate">{profile?.email || "Email indisponible"}</p>
+              <div className="mt-1 flex items-center gap-2">
+                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[10px] h-5 px-2">
+                  Client Slater
+                </Badge>
+                {profile?.referral_code && (
+                  <Badge variant="outline" className="bg-amber-500/5 text-amber-600 border-amber-500/20 text-[10px] h-5 px-2">
+                    {profile.referral_code}
+                  </Badge>
+                )}
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Profile Information Card */}
-        <Card className="floating-card border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <UserCircle className="h-5 w-5" />
-              Informations personnelles
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Modifiez vos informations personnelles
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Profile Information Form */}
+        <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-background via-muted/20 to-background border backdrop-blur-sm shadow-lg mb-6">
+          <div className="relative space-y-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <UserCircle className="h-4 w-4 text-primary" />
+                Informations personnelles
+              </h2>
+              <p className="text-xs text-slate-500">Mettez à jour vos coordonnées personnelles</p>
+            </div>
+
             <form onSubmit={handleProfileSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                <Label htmlFor="first_name">Prénom</Label>
+                  <Label htmlFor="first_name" className="text-xs font-bold uppercase tracking-wider text-slate-500">Prénom</Label>
                   <Input
                     id="first_name"
                     type="text"
-                    className="mobile-form-input"
+                    className="h-11 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-primary"
                     value={profileForm.first_name}
                     onChange={(e) => setProfileForm({ ...profileForm, first_name: e.target.value })}
                     disabled={editProfileMutation.isPending}
                   />
                 </div>
                 <div className="space-y-2">
-                <Label htmlFor="last_name">Nom</Label>
+                  <Label htmlFor="last_name" className="text-xs font-bold uppercase tracking-wider text-slate-500">Nom</Label>
                   <Input
                     id="last_name"
                     type="text"
-                    className="mobile-form-input"
+                    className="h-11 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-primary"
                     value={profileForm.last_name}
                     onChange={(e) => setProfileForm({ ...profileForm, last_name: e.target.value })}
                     disabled={editProfileMutation.isPending}
@@ -258,14 +265,14 @@ function ProfileContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
+                <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                  <Mail className="h-3 w-3" />
                   Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  className="mobile-form-input"
+                  className="h-11 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-primary"
                   value={profileForm.email}
                   onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                   disabled={editProfileMutation.isPending}
@@ -273,79 +280,46 @@ function ProfileContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
+                <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                  <Phone className="h-3 w-3" />
                   Téléphone
                 </Label>
                 <Input
                   id="phone"
                   type="tel"
-                  className="mobile-form-input"
+                  className="h-11 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-primary"
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                   disabled={editProfileMutation.isPending}
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={editProfileMutation.isPending}>
-                {editProfileMutation.isPending ? t("loading") : "Enregistrer les modifications"}
+              <Button type="submit" className="w-full h-11 rounded-xl bg-primary text-white font-bold hover:shadow-lg transition-all" disabled={editProfileMutation.isPending}>
+                {editProfileMutation.isPending ? t("loading") : "Enregistrer"}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Account Information */}
-        <Card className="floating-card border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-base">Informations du compte</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Nom d'utilisateur</span>
-              <span className="font-medium">{profile?.username || "N/A"}</span>
+        {/* Change Password Form */}
+        <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-background via-muted/20 to-background border backdrop-blur-sm shadow-lg">
+          <div className="relative space-y-6">
+            <div className="space-y-1">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Lock className="h-4 w-4 text-primary" />
+                Sécurité
+              </h2>
+              <p className="text-xs text-slate-500">Changer votre mot de passe</p>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Date d'inscription</span>
-              <span className="font-medium">
-                {profile?.date_joined ? new Date(profile.date_joined).toLocaleDateString("fr-FR") : "N/A"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Dernière connexion</span>
-              <span className="font-medium">
-                {profile?.last_login ? new Date(profile.last_login).toLocaleDateString("fr-FR") : "N/A"}
-              </span>
-            </div>
-            {profile?.referral_code && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Code de parrainage</span>
-                <span className="font-mono font-medium text-primary">{profile.referral_code}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Change Password Card */}
-        <Card className="floating-card border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Lock className="h-5 w-5" />
-              Changer le mot de passe
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Mettez à jour votre mot de passe pour sécuriser votre compte
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="old_password">Ancien mot de passe</Label>
+                <Label htmlFor="old_password" className="text-xs font-bold uppercase tracking-wider text-slate-500">Ancien mot de passe</Label>
                 <div className="relative">
                   <Input
                     id="old_password"
                     type={showOldPassword ? "text" : "password"}
-                    placeholder="Entrez votre ancien mot de passe"
-                    className="mobile-form-input pr-10"
+                    className="h-11 pr-10 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-primary"
                     value={passwordForm.old_password}
                     onChange={(e) => setPasswordForm({ ...passwordForm, old_password: e.target.value })}
                     disabled={changePasswordMutation.isPending}
@@ -354,27 +328,21 @@ function ProfileContent() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent text-slate-400"
                     onClick={() => setShowOldPassword(!showOldPassword)}
-                    disabled={changePasswordMutation.isPending}
                   >
-                    {showOldPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
+                    {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="new_password">Nouveau mot de passe</Label>
+                <Label htmlFor="new_password" className="text-xs font-bold uppercase tracking-wider text-slate-500">Nouveau mot de passe</Label>
                 <div className="relative">
                   <Input
                     id="new_password"
                     type={showNewPassword ? "text" : "password"}
-                    placeholder="Entrez votre nouveau mot de passe"
-                    className="mobile-form-input pr-10"
+                    className="h-11 pr-10 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-primary"
                     value={passwordForm.new_password}
                     onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
                     disabled={changePasswordMutation.isPending}
@@ -383,27 +351,21 @@ function ProfileContent() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent text-slate-400"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    disabled={changePasswordMutation.isPending}
                   >
-                    {showNewPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm_new_password">Confirmer le nouveau mot de passe</Label>
+                <Label htmlFor="confirm_new_password" className="text-xs font-bold uppercase tracking-wider text-slate-500">Confirmer</Label>
                 <div className="relative">
                   <Input
                     id="confirm_new_password"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirmez votre nouveau mot de passe"
-                    className="mobile-form-input pr-10"
+                    className="h-11 pr-10 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-primary"
                     value={passwordForm.confirm_new_password}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirm_new_password: e.target.value })}
                     disabled={changePasswordMutation.isPending}
@@ -412,25 +374,27 @@ function ProfileContent() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent text-slate-400"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    disabled={changePasswordMutation.isPending}
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={changePasswordMutation.isPending}>
-                {changePasswordMutation.isPending ? t("loading") : "Changer le mot de passe"}
+              <Button type="submit" className="w-full h-11 rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-bold hover:shadow-lg transition-all" disabled={changePasswordMutation.isPending}>
+                {changePasswordMutation.isPending ? t("loading") : "Mettre à jour"}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Account Metadata */}
+        <div className="mt-8 px-6 text-center">
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+                Inscrit le {profile?.date_joined ? new Date(profile.date_joined).toLocaleDateString("fr-FR") : "N/A"}
+            </p>
+        </div>
       </main>
     </div>
   )

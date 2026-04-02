@@ -10,9 +10,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AuthGuard } from "@/components/auth-guard"
+import { AppBar } from "@/components/ui/app-bar"
 import api from "@/lib/api"
 import type { Notification, PaginatedResponse } from "@/lib/types"
-import { formatDate } from "@/lib/utils"
+import { formatDate, cn } from "@/lib/utils"
 
 function NotificationsContent() {
   const { t } = useTranslation()
@@ -73,104 +74,131 @@ function NotificationsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <header className="bg-background border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold">{t("notifications")}</h1>
-            {showLocalNotifications ? (
-              <p className="text-sm text-muted-foreground">Notifications locales ({displayNotifications.length})</p>
-            ) : unreadCount > 0 ? (
-              <p className="text-sm text-muted-foreground">{unreadCount} non lues</p>
-            ) : null}
+    <div className="min-h-screen pb-24 pt-16 sm:pt-20">
+      <AppBar />
+      
+      <main className="mx-auto w-full max-w-lg p-4 sm:p-6 md:p-8">
+        <div className="mb-6">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/dashboard")}
+                className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 rounded-full"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">{t("notifications")}</h1>
+            </div>
+            
+            <div className="flex gap-2">
+              {unreadCount > 0 && !showLocalNotifications && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => markAllAsReadMutation.mutate()}
+                  disabled={markAllAsReadMutation.isPending}
+                  className="h-8 text-[10px] uppercase tracking-wider font-bold rounded-lg border-primary/20 text-primary hover:bg-primary/5"
+                >
+                  <CheckCheck className="h-3 w-3 mr-1.5" />
+                  {markAllAsReadMutation.isPending ? "..." : "Tout lire"}
+                </Button>
+              )}
+              {showLocalNotifications && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllLocalNotifications}
+                  className="h-8 text-[10px] uppercase tracking-wider font-bold rounded-lg border-rose-200 text-rose-500 hover:bg-rose-50"
+                >
+                  Supprimer
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="flex gap-2">
-            {unreadCount > 0 && !showLocalNotifications && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => markAllAsReadMutation.mutate()}
-                disabled={markAllAsReadMutation.isPending}
-                className="text-xs"
-              >
-                {markAllAsReadMutation.isPending ? "Marquage..." : "Tout marquer comme lu"}
-              </Button>
-            )}
-            {showLocalNotifications && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearAllLocalNotifications}
-                className="text-xs"
-              >
-                Supprimer tout
-              </Button>
-            )}
+          
+          <div className="px-1">
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+              {showLocalNotifications ? displayNotifications.length : (data?.count || 0)} notification{(showLocalNotifications ? displayNotifications.length : (data?.count || 0)) > 1 ? "s" : ""}
+              {showLocalNotifications && " (locales)"}
+            </p>
           </div>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-2xl">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>{t("notifications")}</CardTitle>
-                <CardDescription>
-                  {showLocalNotifications ? displayNotifications.length : (data?.count || 0)} notification{(showLocalNotifications ? displayNotifications.length : (data?.count || 0)) > 1 ? "s" : ""}
-                  {showLocalNotifications && " (locales)"}
-                </CardDescription>
-              </div>
-              <Bell className="h-6 w-6 text-muted-foreground" />
+        <div className="space-y-3">
+          {isLoading && !showLocalNotifications ? (
+            <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed text-slate-400">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent mb-2"></div>
+              <p className="text-sm font-medium">{t("loading")}...</p>
             </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading && !showLocalNotifications ? (
-              <div className="text-center py-8 text-muted-foreground">{t("loading")}</div>
-            ) : displayNotifications.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {showLocalNotifications ? "Aucune notification locale" : t("noData")}
+          ) : displayNotifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/30 dark:bg-slate-900/30">
+              <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                <Bell className="h-8 w-8 text-slate-300" />
               </div>
-            ) : (
-              <div className="space-y-3">
-                {displayNotifications.map((notification, index) => {
-                  const isLatest = index === 0 && !showLocalNotifications; // First item is latest from API
-                  const isNew = !notification.is_read;
+              <p className="text-base font-bold text-slate-900 dark:text-white">{t("noData")}</p>
+            </div>
+          ) : (
+            displayNotifications.map((notification, index) => {
+              const isLatest = index === 0 && !showLocalNotifications;
+              const isNew = !notification.is_read;
 
-                  return (
-                    <div
-                      key={notification.id}
-                      className={`p-4 rounded-lg border transition-colors relative ${
-                        isNew ? "bg-primary/5 border-primary/20" : "bg-background"
-                      } ${isLatest ? "ring-2 ring-blue-500/50" : ""}`}
-                    >
-                      {isLatest && (
-                        <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                          DERNIÈRE
-                        </div>
-                      )}
-                      <div className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${isNew ? "bg-primary" : "bg-gray-300"}`} />
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold">{notification.title}</h3>
-                            {isNew && <Badge variant="default" className="text-xs">NOUVEAU</Badge>}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{notification.content}</p>
-                          <p className="text-xs text-muted-foreground">{formatDate(notification.created_at)}</p>
-                        </div>
-                      </div>
+              return (
+                <div
+                  key={notification.id}
+                  className={cn(
+                    "group relative overflow-hidden rounded-2xl p-4 transition-all duration-300 border backdrop-blur-sm",
+                    isNew 
+                      ? "bg-white dark:bg-slate-900 border-primary/20 shadow-lg shadow-primary/5" 
+                      : "bg-slate-50/50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-800",
+                    isLatest && !isNew ? "ring-1 ring-blue-500/20" : ""
+                  )}
+                >
+                  {isNew && (
+                    <div className="absolute top-0 right-0 p-1.5">
+                      <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.6)]" />
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  )}
+                  
+                  <div className="flex items-start gap-4">
+                    <div className={cn(
+                      "mt-1 p-2 rounded-xl shrink-0",
+                      isNew ? "bg-primary/10 text-primary" : "bg-slate-200/50 dark:bg-slate-800 text-slate-400"
+                    )}>
+                      <Bell className="h-4 w-4" />
+                    </div>
+                    
+                    <div className="flex-1 space-y-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className={cn(
+                          "text-sm font-bold truncate",
+                          isNew ? "text-slate-900 dark:text-white" : "text-slate-600 dark:text-slate-400"
+                        )}>
+                          {notification.title}
+                        </h3>
+                        {isLatest && (
+                          <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-blue-200 text-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
+                            RÉCENT
+                          </Badge>
+                        )}
+                      </div>
+                      <p className={cn(
+                        "text-xs leading-relaxed",
+                        isNew ? "text-slate-600 dark:text-slate-300" : "text-slate-500/80 dark:text-slate-500"
+                      )}>
+                        {notification.content}
+                      </p>
+                      <p className="text-[10px] font-medium text-slate-400 pt-1">
+                        {formatDate(notification.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </main>
     </div>
   )

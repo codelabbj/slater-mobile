@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AuthGuard } from "@/components/auth-guard"
+import { AppBar } from "@/components/ui/app-bar"
 import api from "@/lib/api"
 import type { Platform } from "@/lib/types"
 
@@ -176,44 +177,55 @@ function AddBetIdContent() {
   }
 
   return (
-    <div className="min-h-screen gradient-background mobile-safe-touch">
+    <div className="min-h-screen pb-24 pt-16 sm:pt-20">
       {/* Header */}
-      <header className="bg-background border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-bold">{t("addBetId")}</h1>
-        </div>
-      </header>
+      <AppBar />
 
-      <main className="container mx-auto px-4 py-6 max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ajouter un identifiant de pari</CardTitle>
-            <CardDescription>Ajoutez votre ID de compte de la plateforme de paris</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSearch} className="space-y-4">
+      <main className="mx-auto w-full max-w-md p-4 sm:p-6 md:p-8">
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push(returnPath)}
+              className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 rounded-full"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">{t("addBetId")}</h1>
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-background via-muted/20 to-background border backdrop-blur-sm shadow-lg">
+          {/* Decorative gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-50" />
+          
+          <div className="relative space-y-6">
+            <div className="space-y-1">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Nouvel identifiant</h2>
+              <p className="text-xs text-slate-500">Ajoutez votre ID de compte de la plateforme de paris</p>
+            </div>
+
+            <form onSubmit={handleSearch} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="platform">{t("platform")}</Label>
+                <Label htmlFor="platform" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("platform")}</Label>
                 {loadingPlatforms ? (
-                  <div className="text-sm text-muted-foreground">{t("loading")}</div>
+                  <div className="h-12 w-full animate-pulse bg-slate-200 dark:bg-slate-800 rounded-xl" />
                 ) : (
                   <Select value={platformId} onValueChange={setPlatformId}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-primary">
                       <SelectValue placeholder="Sélectionner une plateforme" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 shadow-xl">
                       {platforms?.map((platform) => (
-                        <SelectItem key={platform.id} value={platform.id}>
-                          <div className="flex items-center gap-2">
+                        <SelectItem key={platform.id} value={platform.id} className="rounded-lg">
+                          <div className="flex items-center gap-3">
                             <img
                               src={platform.image || "/placeholder.svg"}
                               alt={platform.name}
                               className="w-6 h-6 object-contain"
                             />
-                            {platform.name}
+                            <span className="font-medium">{platform.name}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -223,28 +235,31 @@ function AddBetIdContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="appId">Identifiant de pari</Label>
-                <Input
-                  id="appId"
-                  type="text"
-                  placeholder="123456789"
-                  value={appId}
-                  onChange={(e) => setAppId(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Entrez votre ID de compte depuis votre plateforme de paris
+                <Label htmlFor="appId" className="text-xs font-bold uppercase tracking-wider text-slate-500">Identifiant de pari</Label>
+                <div className="relative">
+                  <Input
+                    id="appId"
+                    type="text"
+                    placeholder="Ex: 123456789"
+                    value={appId}
+                    onChange={(e) => setAppId(e.target.value)}
+                    className="h-12 text-base font-medium bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl pl-4 focus:ring-primary"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-500 leading-relaxed">
+                  Entrez votre ID de compte depuis votre plateforme de paris. Il sera validé avant l'ajout.
                 </p>
               </div>
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-[0.98]"
                 disabled={searchUserMutation.isPending || addBetIdMutation.isPending}
               >
                 {searchUserMutation.isPending ? (
                   <>
                     <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent mr-2"></div>
-                    {t("loading")}
+                    Validation en cours...
                   </>
                 ) : (
                   <>
@@ -254,8 +269,8 @@ function AddBetIdContent() {
                 )}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
 
       {/* Confirmation Modal */}

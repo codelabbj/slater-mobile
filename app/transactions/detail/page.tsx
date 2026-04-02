@@ -297,10 +297,10 @@ function TransactionDetailContent() {
             className="w-full h-16 rounded-[24px] bg-white text-primary border border-primary/10 text-xl font-bold shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 backdrop-blur-xl"
             onClick={() => {
               const phone = settings?.whatsapp_phone || "2250544360901"
-              const message = `Hello, I need help with my transaction:
-- Ref: ${transaction.reference}
-- Amount: ${transaction.amount}
-- Date: ${formatDate(transaction.created_at)}`
+              const message = `Bonjour, j'ai besoin d'aide concernant ma transaction :
+- Réf : ${transaction.reference}
+- Montant : ${transaction.amount}
+- Date : ${formatDate(transaction.created_at)}`
               
               const encodedMsg = encodeURIComponent(message)
               window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank')

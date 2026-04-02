@@ -23,3 +23,12 @@ export function formatCurrency(amount: number): string {
     minimumFractionDigits: 0,
   }).format(amount)
 }
+
+export function formatPhoneNumberForDisplay(phoneNumber: string | undefined | null): string {
+  if (!phoneNumber) return "N/A"
+  const cleaned = phoneNumber.replace(/\D/g, '')
+  if (cleaned.length === 10) {
+    return cleaned.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5')
+  }
+  return phoneNumber
+}

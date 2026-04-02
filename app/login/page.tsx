@@ -208,177 +208,161 @@ export default function LoginPage() {
 
   const renderForgotPasswordForm = () => {
     if (forgotPasswordStep === 1) {
-      // Step 1: Email Entry
       return (
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="forgot-email" className="mobile-text font-medium">
-              {t("email")}
-            </Label>
+        <div className="space-y-4 sm:space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="forgot_email" className="text-sm font-medium text-slate-600">Adresse e-mail de récupération</Label>
             <Input
-              id="forgot-email"
+              id="forgot_email"
               type="email"
-              placeholder="Entrez votre adresse e-mail"
-              className="mobile-form-input"
+              placeholder="votre.email@exemple.com"
               value={forgotPasswordEmail}
               onChange={(e) => setForgotPasswordEmail(e.target.value)}
               disabled={isForgotPasswordLoading}
+              className="h-10 sm:h-11 bg-white border-slate-200 focus:border-slate-400 focus:ring-slate-200 text-sm sm:text-base"
             />
           </div>
-
-          <Button
+          
+          <Button 
             type="button"
-            variant="glow"
-            className="w-full mobile-btn-enhanced"
             onClick={handleSendOtp}
+            className="w-full h-10 sm:h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm sm:text-base"
             disabled={isForgotPasswordLoading}
           >
             {isForgotPasswordLoading ? t("loading") : "Envoyer OTP"}
           </Button>
-
+          
           <Button
             type="button"
             variant="ghost"
-            className="w-full"
             onClick={() => setIsForgotPassword(false)}
+            className="w-full h-10 sm:h-11 text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-sm sm:text-base"
             disabled={isForgotPasswordLoading}
           >
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Retour à la connexion
           </Button>
         </div>
       )
     } else if (forgotPasswordStep === 2) {
-      // Step 2: OTP Verification
       return (
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="forgot-otp" className="mobile-text font-medium">
-              Code de vérification
-            </Label>
+        <div className="space-y-4 sm:space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="otp" className="text-sm font-medium text-slate-600">Code de vérification</Label>
             <Input
-              id="forgot-otp"
+              id="otp"
               type="text"
-              placeholder="Entrez le code reçu"
-              className="mobile-form-input"
+              placeholder="123456"
               value={forgotPasswordOtp}
               onChange={(e) => setForgotPasswordOtp(e.target.value)}
               disabled={isForgotPasswordLoading}
+              className="h-10 sm:h-11 bg-white border-slate-200 focus:border-slate-400 focus:ring-slate-200 text-center font-mono tracking-widest text-sm sm:text-base"
               maxLength={6}
             />
-            <p className="mobile-text text-sm text-muted-foreground">
-              Entrez le code OTP envoyé à {forgotPasswordEmail}
+            <p className="text-xs text-slate-500">
+              Code envoyé à : {forgotPasswordEmail}
             </p>
           </div>
-
-          <Button
+          
+          <Button 
             type="button"
-            variant="glow"
-            className="w-full mobile-btn-enhanced"
             onClick={handleVerifyOtp}
+            className="w-full h-10 sm:h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm sm:text-base"
             disabled={isForgotPasswordLoading}
           >
             {isForgotPasswordLoading ? t("loading") : "Vérifier OTP"}
           </Button>
-
+          
           <Button
             type="button"
             variant="ghost"
-            className="w-full"
             onClick={() => setForgotPasswordStep(1)}
+            className="w-full h-10 sm:h-11 text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-sm sm:text-base"
             disabled={isForgotPasswordLoading}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
         </div>
       )
-    } else {
-      // Step 3: New Password
+    } else if (forgotPasswordStep === 3) {
       return (
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="forgot-new-password" className="mobile-text font-medium">
-              Nouveau mot de passe
-            </Label>
+        <div className="space-y-4 sm:space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="new_password" className="text-sm font-medium text-slate-600">Nouveau mot de passe</Label>
             <div className="relative">
               <Input
-                id="forgot-new-password"
+                id="new_password"
                 type={showNewPassword ? "text" : "password"}
-                placeholder="Entrez votre nouveau mot de passe"
-                className="mobile-form-input pr-10"
+                placeholder="Minimum 6 caractères"
                 value={forgotPasswordNewPassword}
                 onChange={(e) => setForgotPasswordNewPassword(e.target.value)}
                 disabled={isForgotPasswordLoading}
+                className="h-10 sm:h-11 pr-10 sm:pr-11 bg-white border-slate-200 focus:border-slate-400 focus:ring-slate-200 text-sm sm:text-base"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                className="absolute right-0 top-0 h-10 sm:h-11 w-10 sm:w-11 hover:bg-slate-100"
                 onClick={() => setShowNewPassword(!showNewPassword)}
                 disabled={isForgotPasswordLoading}
               >
                 {showNewPassword ? (
-                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  <EyeOff className="h-4 w-4 text-slate-400" />
                 ) : (
-                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <Eye className="h-4 w-4 text-slate-400" />
                 )}
               </Button>
             </div>
-            <p className="mobile-text text-xs text-muted-foreground">
-              Minimum 6 caractères avec majuscule, minuscule et chiffre
-            </p>
           </div>
 
-          <div className="space-y-3">
-            <Label htmlFor="forgot-confirm-password" className="mobile-text font-medium">
-              Confirmer le mot de passe
-            </Label>
+          <div className="space-y-2">
+            <Label htmlFor="confirm_new_password" className="text-sm font-medium text-slate-600">Confirmer le mot de passe</Label>
             <div className="relative">
               <Input
-                id="forgot-confirm-password"
+                id="confirm_new_password"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirmez votre nouveau mot de passe"
-                className="mobile-form-input pr-10"
+                placeholder="Répétez le mot de passe"
                 value={forgotPasswordConfirmPassword}
                 onChange={(e) => setForgotPasswordConfirmPassword(e.target.value)}
                 disabled={isForgotPasswordLoading}
+                className="h-10 sm:h-11 pr-10 sm:pr-11 bg-white border-slate-200 focus:border-slate-400 focus:ring-slate-200 text-sm sm:text-base"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                className="absolute right-0 top-0 h-10 sm:h-11 w-10 sm:w-11 hover:bg-slate-100"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={isForgotPasswordLoading}
               >
                 {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  <EyeOff className="h-4 w-4 text-slate-400" />
                 ) : (
-                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <Eye className="h-4 w-4 text-slate-400" />
                 )}
               </Button>
             </div>
           </div>
-
-          <Button
+          
+          <Button 
             type="button"
-            variant="glow"
-            className="w-full mobile-btn-enhanced"
             onClick={handleResetPassword}
+            className="w-full h-10 sm:h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm sm:text-base"
             disabled={isForgotPasswordLoading}
           >
             {isForgotPasswordLoading ? t("loading") : "Réinitialiser le mot de passe"}
           </Button>
-
+          
           <Button
             type="button"
             variant="ghost"
-            className="w-full"
             onClick={() => setForgotPasswordStep(2)}
+            className="w-full h-10 sm:h-11 text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-sm sm:text-base"
             disabled={isForgotPasswordLoading}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
         </div>
@@ -387,125 +371,142 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen gradient-background flex items-center justify-center p-4 mobile-safe-touch">
-      <Card className="floating-card w-full max-w-md animate-scale-in">
-        <CardHeader className="space-y-3 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-2 ring-primary/30 ring-offset-2 ring-offset-background shadow-xl shadow-primary/20">
-                <Image
-                  src="/Slater-logo.png"
-                  alt="Slater Logo"
-                  width={80}
-                  height={20}
-                  className="w-16 h-auto object-contain drop-shadow-sm"
-                  priority
-                />
-              </div>
-            </div>
+    <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 flex-1 py-12">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="flex justify-center mb-6 sm:mb-8">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+            <Image
+              src="/Slater-logo.png"
+              alt="Slater Logo"
+              width={64}
+              height={16}
+              className="w-12 h-auto object-contain sm:w-16"
+            />
           </div>
-          <CardTitle className="mobile-heading text-2xl">Bienvenue sur Slater</CardTitle>
-          {/* <CardDescription className="mobile-text">
-            {isForgotPassword ? "Réinitialisation du mot de passe" : t("login")}
-          </CardDescription> */}
-        </CardHeader>
-        <CardContent>
-          {isForgotPassword ? (
-            renderForgotPasswordForm()
-          ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="space-y-3">
-                <Label htmlFor="email_or_phone" className="mobile-text font-medium">
-                  {t("email")} / {t("phone")}
-                </Label>
+        </div>
+
+        {/* Header */}
+        <div className="text-center mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+            {isForgotPassword ? "Récupération" : "Bon retour"}
+          </h2>
+          <p className="text-sm sm:text-base text-slate-500">
+            {isForgotPassword
+              ? forgotPasswordStep === 1
+                ? "Entrez votre email pour recevoir un code"
+                : forgotPasswordStep === 2
+                ? "Vérifiez votre boîte de réception"
+                : "Créez un nouveau mot de passe"
+              : "Connectez-vous pour accéder à votre compte"
+            }
+          </p>
+        </div>
+
+        {/* Form */}
+        {isForgotPassword ? (
+          renderForgotPasswordForm()
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="email_or_phone" className="text-sm font-medium text-slate-700">
+                Email ou téléphone
+              </Label>
+              <Input
+                id="email_or_phone"
+                type="text"
+                placeholder="votre@email.com ou +225 01 23 45 67"
+                {...register("email_or_phone")}
+                disabled={isLoading}
+                className="h-10 sm:h-11 bg-white border-slate-200 focus:border-slate-400 focus:ring-slate-200 text-sm sm:text-base"
+              />
+              {errors.email_or_phone && (
+                <p className="text-xs sm:text-sm text-red-500 font-medium">{errors.email_or_phone.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+                Mot de passe
+              </Label>
+              <div className="relative">
                 <Input
-                  id="email_or_phone"
-                  type="text"
-                  placeholder="Entrez votre e-mail ou numéro de téléphone"
-                  className="mobile-form-input"
-                  {...register("email_or_phone")}
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  {...register("password")}
                   disabled={isLoading}
+                  className="h-10 sm:h-11 pr-10 sm:pr-11 bg-white border-slate-200 focus:border-slate-400 focus:ring-slate-200 text-sm sm:text-base"
                 />
-                {errors.email_or_phone && <p className="mobile-text text-destructive">{errors.email_or_phone.message}</p>}
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="password" className="mobile-text font-medium">
-                  {t("password")}
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Entrez votre mot de passe"
-                    className="mobile-form-input pr-10"
-                    {...register("password")}
-                    disabled={isLoading}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-                {errors.password && <p className="mobile-text text-destructive">{errors.password.message}</p>}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="remember-me"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    disabled={isLoading}
-                  />
-                  <Label
-                    htmlFor="remember-me"
-                    className="mobile-text text-sm font-normal cursor-pointer"
-                  >
-                    Se souvenir de moi
-                  </Label>
-                </div>
                 <Button
                   type="button"
-                  variant="link"
-                  className="mobile-text text-sm px-0 h-auto"
-                  onClick={() => {
-                    setIsForgotPassword(true)
-                    setForgotPasswordStep(1)
-                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-10 sm:h-11 w-10 sm:w-11 hover:bg-slate-100"
+                  onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
                 >
-                  Mot de passe oublié?
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-slate-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-slate-400" />
+                  )}
                 </Button>
               </div>
+              {errors.password && (
+                <p className="text-xs sm:text-sm text-red-500 font-medium">{errors.password.message}</p>
+              )}
+            </div>
 
-              <Button type="submit" variant="glow" className="w-full mobile-btn-enhanced" disabled={isLoading}>
-                {isLoading ? t("loading") : t("loginButton")}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Checkbox
+                  id="remember_me"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
+                  disabled={isLoading}
+                />
+                <Label
+                  htmlFor="remember_me"
+                  className="text-xs sm:text-sm cursor-pointer text-slate-600"
+                >
+                  Se souvenir de moi
+                </Label>
+              </div>
+              <Button
+                type="button"
+                variant="link"
+                className="px-0 text-xs sm:text-sm h-auto text-slate-600 hover:text-slate-900 font-medium"
+                onClick={() => {
+                  setIsForgotPassword(true)
+                  setForgotPasswordStep(1)
+                }}
+                disabled={isLoading}
+              >
+                Mot de passe oublié ?
               </Button>
-            </form>
-          )}
-        </CardContent>
-        {!isForgotPassword && (
-          <CardFooter className="flex flex-col space-y-3">
-            <p className="mobile-text text-muted-foreground text-center">
-              {t("dontHaveAccount")}{" "}
-              <Link href="/register" className="text-primary hover:underline font-medium">
-                {t("register")}
-              </Link>
-            </p>
-          </CardFooter>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-10 sm:h-11 bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-lg transition-all duration-200 text-sm sm:text-base"
+              disabled={isLoading}
+            >
+              {isLoading ? t("loading") : "Se connecter"}
+            </Button>
+          </form>
         )}
-      </Card>
+
+        {/* Footer */}
+        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-slate-200 text-center">
+          <p className="text-xs sm:text-sm text-slate-500">
+            Pas encore de compte ?{" "}
+            <Link href="/register" className="text-slate-900 font-semibold hover:underline">
+              Créer un compte
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { useState, useEffect, MouseEvent } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Check, Plus, Pencil, Trash, Loader2 } from "lucide-react"
+import { ArrowLeft, Check, Plus, Pencil, Trash, Loader2, Info } from "lucide-react"
 import { TransactionProgressBar } from "@/components/ui/transaction-progress-bar"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
@@ -12,10 +12,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Youtube, Info } from "lucide-react"
+import { Youtube } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { AuthGuard } from "@/components/auth-guard"
+import { AppBar } from "@/components/ui/app-bar"
 import api from "@/lib/api"
 import type { Platform, Network, UserPhone, UserAppId, Transaction } from "@/lib/types"
 
@@ -672,31 +673,27 @@ function WithdrawContent() {
   }
 
   return (
-    <div className="min-h-screen gradient-background mobile-safe-touch">
-      {/* Mobile Header */}
-      <header className="bg-background border-b sticky top-0 z-50 safe-area-top">
-        <div className="px-4 py-3">
-          <div className="flex items-center gap-3 mb-2">
-            <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => (step > 1 ? setStep(step - 1) : router.push("/dashboard"))}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex-1">
-              <h1 className="text-lg font-bold">{t("withdraw")}</h1>
-              <p className="text-sm text-muted-foreground">Étape {step > 5 && !hasHelpStep ? 5 : step} sur {totalSteps}</p>
+    <>
+      <AppBar />
+      <div className="flex flex-col min-h-screen pb-24 pt-16 sm:pt-20">
+        <div className="flex-1 overflow-y-auto w-full">
+          <div className="mx-auto w-full max-w-md p-4 sm:p-6 md:p-8">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => (step > 1 ? setStep(step - 1) : router.push("/dashboard"))}
+                  className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 rounded-full"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">{t("withdraw")}</h1>
+              </div>
+              
+              <TransactionProgressBar currentStep={step > 5 && !hasHelpStep ? 5 : step} totalSteps={totalSteps} type="withdrawal" />
             </div>
-          </div>
 
-          {/* Modern Progress Bar */}
-          <TransactionProgressBar
-            currentStep={step > 5 && !hasHelpStep ? 5 : step}
-            totalSteps={totalSteps}
-            type="withdrawal"
-          />
-        </div>
-      </header>
-
-
-      <main className="px-4 py-4 space-y-4">
         {/* Last Transaction Summary Section - Only show if it matches the current page type */}
         {lastTransaction && lastTransaction.type_trans === 'withdrawal' && (
           <Card className="border-2 border-primary/20 bg-primary/5 shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500 rounded-2xl sm:rounded-3xl">
@@ -771,229 +768,112 @@ function WithdrawContent() {
           </Card>
         )}
 
-        {/* Step 1: Select Platform */}
-        {step === 1 && (
-          <Card className="floating-card border-0 shadow-lg animate-scale-in">
-            <CardHeader>
-              <CardTitle>{t("selectPlatform")}</CardTitle>
-              <CardDescription>Choisissez votre plateforme de paris</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingPlatforms ? (
-                <div className="text-center py-8">{t("loading")}</div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  {platforms?.map((platform) => (
-                    <div
-                      key={platform.id}
-                      onClick={() => {
-                        setSelectedPlatform(platform)
-                        setTimeout(() => setStep(2), 100)
-                      }}
-                      className={`group relative p-3 sm:p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedPlatform?.id === platform.id
-                        ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
-                        : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
-                        }`}
-                    >
-                      {selectedPlatform?.id === platform.id && (
-                        <div className="absolute top-2 right-2 bg-primary rounded-full p-1 shadow-sm shadow-primary/40">
-                          <Check className="h-3 w-3 text-white" />
-                        </div>
-                      )}
-                      <img
-                        src={platform.image || "/placeholder.svg"}
-                        alt={platform.name}
-                        className="w-full h-16 object-contain mb-2 transition-transform duration-200 group-hover:scale-105"
-                      />
-                      <p className="text-center font-semibold text-sm">{platform.name}</p>
-                      <p className="text-center text-[11px] sm:text-xs text-muted-foreground mt-1">
-                        {platform.minimun_with} - {platform.max_win} FCFA
-                      </p>
-                    </div>
-                  ))}
+        {/* Step Container */}
+        <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-background via-muted/20 to-background border backdrop-blur-sm shadow-lg mb-6">
+          {/* Decorative gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-emerald-500/5 opacity-50" />
+          
+          {/* Decorative corner accent */}
+          <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10 bg-emerald-500" />
+          
+          <div className="relative">
+            {/* Step 1: Select Platform */}
+            {step === 1 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t("selectPlatform")}</h2>
+                  <p className="text-xs text-slate-500">Choisissez votre plateforme de paris</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 2: Select Bet ID */}
-        {step === 2 && (
-          <Card className="floating-card border-0 shadow-lg animate-scale-in">
-            <CardHeader>
-              <CardTitle>{t("selectBetId")}</CardTitle>
-              <CardDescription>Choisissez votre identifiant de pari</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {loadingBetIds ? (
-                <div className="text-center py-8">{t("loading")}</div>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    {betIds?.map((betId) => (
+                {loadingPlatforms ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent mb-2"></div>
+                    <p className="text-sm">{t("loading")}</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {platforms?.map((platform) => (
                       <div
-                        key={betId.id}
+                        key={platform.id}
                         onClick={() => {
-                          setSelectedBetId(betId)
-                          setTimeout(() => setStep(3), 100)
+                          setSelectedPlatform(platform)
+                          setTimeout(() => setStep(2), 100)
                         }}
-                        className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedBetId?.id === betId.id
-                          ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
-                          : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
+                        className={`group relative p-3 sm:p-4 rounded-xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-95 ${selectedPlatform?.id === platform.id
+                          ? "border-emerald-500/50 bg-emerald-500/10 shadow-lg shadow-emerald-500/20"
+                          : "border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-emerald-500/30 hover:bg-emerald-500/5"
                           }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <p className="text-sm font-semibold">{betId.user_app_id}</p>
-                            <p className="text-xs text-muted-foreground">ID de pari</p>
+                        {selectedPlatform?.id === platform.id && (
+                          <div className="absolute top-2 right-2 bg-emerald-500 rounded-full p-1 shadow-sm shadow-emerald-500/40">
+                            <Check className="h-3 w-3 text-white" />
                           </div>
-                          <div className="flex items-center gap-1">
-                            {selectedBetId?.id === betId.id && (
-                              <div className="bg-primary rounded-full p-1">
-                                <Check className="h-4 w-4 text-white" />
-                              </div>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                              onClick={(event) => handleEditBetId(event, betId)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={(event) => handleDeleteBetId(event, betId)}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
+                        )}
+                        <img
+                          src={platform.image || "/placeholder.svg"}
+                          alt={platform.name}
+                          className="w-full h-12 object-contain mb-2 transition-transform duration-200 group-hover:scale-105"
+                        />
+                        <p className="text-center text-sm font-bold truncate">
+                          {platform.name}
+                        </p>
+                        <p className="text-center text-[10px] text-slate-500 mt-1 uppercase tracking-wider font-medium">
+                          {platform.minimun_with.toLocaleString()} - {platform.max_win.toLocaleString()} FCFA
+                        </p>
                       </div>
                     ))}
                   </div>
+                )}
+              </div>
+            )}
 
-                  <Button
-                    variant="outline"
-                    className="w-full bg-transparent"
-                    onClick={() => {
-                      if (!selectedPlatform) {
-                        toast.error("Veuillez sélectionner une plateforme")
-                        return
-                      }
-                      const params = new URLSearchParams({
-                        platform: selectedPlatform.id,
-                        flow: "withdraw",
-                        return: "/withdraw",
-                        targetStep: "3",
-                      })
-                      router.push(`/add-bet-id?${params.toString()}`)
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t("addBetId")}
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 3: Select Network */}
-        {step === 3 && (
-          <Card className="floating-card border-0 shadow-lg animate-scale-in">
-            <CardHeader>
-              <CardTitle>{t("selectNetwork")}</CardTitle>
-              <CardDescription>Choisissez votre réseau de paiement</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingNetworks ? (
-                <div className="text-center py-8">{t("loading")}</div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  {networks?.map((network) => (
-                    <div
-                      key={network.id}
-                      onClick={() => {
-                        setSelectedNetwork(network)
-                        setTimeout(() => setStep(4), 100)
-                      }}
-                      className={`group relative p-3 sm:p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedNetwork?.id === network.id
-                        ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
-                        : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
-                        }`}
-                    >
-                      {selectedNetwork?.id === network.id && (
-                        <div className="absolute top-2 right-2 bg-primary rounded-full p-1 shadow-sm shadow-primary/40">
-                          <Check className="h-3 w-3 text-white" />
-                        </div>
-                      )}
-                      <img
-                        src={network.image || "/placeholder.svg"}
-                        alt={network.name}
-                        className="w-full h-16 object-contain mb-2 transition-transform duration-200 group-hover:scale-105"
-                      />
-                      <p className="text-center font-semibold text-sm">{network.public_name}</p>
-                    </div>
-                  ))}
+            {/* Step 2: Select Bet ID */}
+            {step === 2 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t("selectBetId")}</h2>
+                  <p className="text-xs text-slate-500">Choisissez votre identifiant de pari</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 4: Select Phone */}
-        {step === 4 && (
-          <Card className="floating-card border-0 shadow-lg animate-scale-in">
-            <CardHeader>
-              <CardTitle>{t("selectPhone")}</CardTitle>
-              <CardDescription>Choisissez votre numéro de téléphone</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {loadingPhones ? (
-                <div className="text-center py-8">{t("loading")}</div>
-              ) : (
-                <>
-                  {phones && phones.length > 0 ? (
-                    <div className="space-y-2">
-                      {phones.map((phone) => (
+                {loadingBetIds ? (
+                  <div className="text-center py-8">{t("loading")}</div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid gap-2.5">
+                      {betIds?.map((betId) => (
                         <div
-                          key={phone.id}
+                          key={betId.id}
                           onClick={() => {
-                            setSelectedPhone(phone)
-                            setTimeout(() => setStep(5), 100)
+                            setSelectedBetId(betId)
+                            setTimeout(() => setStep(3), 100)
                           }}
-                          className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedPhone?.id === phone.id
-                            ? "border-primary/80 bg-primary/10 shadow-lg shadow-primary/25"
-                            : "border-border/60 bg-background/40 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
+                          className={`group p-4 rounded-xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedBetId?.id === betId.id
+                            ? "border-emerald-500/50 bg-emerald-500/10 shadow-lg shadow-emerald-500/20"
+                            : "border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-emerald-500/30 hover:bg-emerald-500/5"
                             }`}
                         >
                           <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
-                              <p className="text-sm font-semibold">{phone.phone}</p>
-                              <p className="text-xs text-muted-foreground">Numéro de téléphone</p>
+                              <p className="text-sm font-bold text-slate-900 dark:text-white">{betId.user_app_id}</p>
+                              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Identifiant de pari</p>
                             </div>
                             <div className="flex items-center gap-1">
-                              {selectedPhone?.id === phone.id && (
-                                <div className="bg-primary rounded-full p-1">
+                              {selectedBetId?.id === betId.id && (
+                                <div className="bg-emerald-500 rounded-full p-1 shadow-sm shadow-emerald-500/40">
                                   <Check className="h-4 w-4 text-white" />
                                 </div>
                               )}
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                onClick={(event) => handleEditPhone(event, phone)}
+                                className="h-8 w-8 text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                onClick={(event) => handleEditBetId(event, betId)}
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                onClick={(event) => handleDeletePhone(event, phone)}
+                                className="h-8 w-8 text-slate-400 hover:text-red-500"
+                                onClick={(event) => handleDeleteBetId(event, betId)}
                               >
                                 <Trash className="h-4 w-4" />
                               </Button>
@@ -1002,200 +882,311 @@ function WithdrawContent() {
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>Aucun numéro de téléphone disponible pour {selectedNetwork?.public_name}</p>
-                      <p className="text-sm mt-2">Ajoutez un nouveau numéro ci-dessous</p>
+
+                    <Button
+                      variant="outline"
+                      className="w-full bg-white/50 dark:bg-slate-900/50 border-dashed border-slate-300 dark:border-slate-700 rounded-xl h-12"
+                      onClick={() => {
+                        if (!selectedPlatform) {
+                          toast.error("Veuillez sélectionner une plateforme")
+                          return
+                        }
+                        const params = new URLSearchParams({
+                          platform: selectedPlatform.id,
+                          flow: "withdraw",
+                          return: "/withdraw",
+                          targetStep: "3",
+                        })
+                        router.push(`/add-bet-id?${params.toString()}`)
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("addBetId")}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Select Network */}
+            {step === 3 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t("selectNetwork")}</h2>
+                  <p className="text-xs text-slate-500">Choisissez votre réseau de paiement</p>
+                </div>
+                {loadingNetworks ? (
+                  <div className="text-center py-8">{t("loading")}</div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {networks?.map((network) => (
+                      <div
+                        key={network.id}
+                        onClick={() => {
+                          setSelectedNetwork(network)
+                          setTimeout(() => setStep(4), 100)
+                        }}
+                        className={`group relative p-3 sm:p-4 rounded-xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedNetwork?.id === network.id
+                          ? "border-emerald-500/50 bg-emerald-500/10 shadow-lg shadow-emerald-500/20"
+                          : "border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-emerald-500/30 hover:bg-emerald-500/5"
+                          }`}
+                      >
+                        {selectedNetwork?.id === network.id && (
+                          <div className="absolute top-2 right-2 bg-emerald-500 rounded-full p-1 shadow-sm shadow-emerald-500/40">
+                            <Check className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                        <img
+                          src={network.image || "/placeholder.svg"}
+                          alt={network.name}
+                          className="w-full h-12 object-contain mb-2 transition-transform duration-200 group-hover:scale-105"
+                        />
+                        <p className="text-center font-bold text-sm text-slate-900 dark:text-white">{network.public_name}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 4: Select Phone */}
+            {step === 4 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t("selectPhone")}</h2>
+                  <p className="text-xs text-slate-500">Choisissez votre numéro de téléphone</p>
+                </div>
+                {loadingPhones ? (
+                  <div className="text-center py-8">{t("loading")}</div>
+                ) : (
+                  <div className="space-y-4">
+                    {phones && phones.length > 0 ? (
+                      <div className="grid gap-2.5">
+                        {phones.map((phone) => (
+                          <div
+                            key={phone.id}
+                            onClick={() => {
+                              setSelectedPhone(phone)
+                              setTimeout(() => setStep(5), 100)
+                            }}
+                            className={`group p-4 rounded-xl border cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 ${selectedPhone?.id === phone.id
+                              ? "border-emerald-500/50 bg-emerald-500/10 shadow-lg shadow-emerald-500/20"
+                              : "border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-emerald-500/30 hover:bg-emerald-500/5"
+                              }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-0.5">
+                                <p className="text-sm font-bold text-slate-900 dark:text-white">{phone.phone}</p>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Numéro de téléphone</p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {selectedPhone?.id === phone.id && (
+                                  <div className="bg-emerald-500 rounded-full p-1 shadow-sm shadow-emerald-500/40">
+                                    <Check className="h-4 w-4 text-white" />
+                                  </div>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                  onClick={(event) => handleEditPhone(event, phone)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-slate-400 hover:text-red-500"
+                                  onClick={(event) => handleDeletePhone(event, phone)}
+                                >
+                                  <Trash className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-slate-500">
+                        <p className="text-sm font-medium">Aucun numéro disponible pour {selectedNetwork?.public_name}</p>
+                        <p className="text-xs mt-1">Ajoutez un nouveau numéro ci-dessous</p>
+                      </div>
+                    )}
+
+                    <Button
+                      variant="outline"
+                      className="w-full bg-white/50 dark:bg-slate-900/50 border-dashed border-slate-300 dark:border-slate-700 rounded-xl h-12"
+                      onClick={() => {
+                        if (!selectedPlatform || !selectedBetId || !selectedNetwork) {
+                          toast.error("Veuillez sélectionner une plateforme, un identifiant et un réseau")
+                          return
+                        }
+                        const params = new URLSearchParams({
+                          network: selectedNetwork.id.toString(),
+                          platform: selectedPlatform.id,
+                          betUserAppId: selectedBetId.user_app_id,
+                          flow: "withdraw",
+                          return: "/withdraw",
+                          targetStep: "5",
+                        })
+                        router.push(`/add-phone?${params.toString()}`)
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("addPhone")} ({selectedNetwork?.public_name})
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 5: Help Screen (Conditional) */}
+            {step === 5 && hasHelpStep && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="text-center space-y-2 py-2">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">Besoin d'aide ?</h2>
+                  <p className="text-slate-500 text-xs max-w-[280px] mx-auto">
+                    Consultez nos tutoriels vidéo pour faciliter votre retrait.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {selectedPlatform?.withdrawal_tuto_link && (
+                    <div 
+                      onClick={() => window.open(selectedPlatform.withdrawal_tuto_link!, "_blank")}
+                      className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-emerald-500/20 shadow-sm flex items-center gap-4 cursor-pointer active:scale-95 transition-all hover:bg-emerald-500/5"
+                    >
+                      <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Youtube className="h-6 w-6 text-red-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] uppercase tracking-wider text-emerald-500 font-bold">Tutoriel vidéo</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                          Comment obtenir un code {selectedPlatform?.name || "1XBET"} ?
+                        </p>
+                      </div>
                     </div>
                   )}
 
-                  <Button
-                    variant="outline"
-                    className="w-full bg-transparent"
-                    onClick={() => {
-                      if (!selectedPlatform || !selectedBetId || !selectedNetwork) {
-                        toast.error("Veuillez sélectionner une plateforme, un identifiant et un réseau")
-                        return
-                      }
-                      const params = new URLSearchParams({
-                        network: selectedNetwork.id.toString(),
-                        platform: selectedPlatform.id,
-                        betUserAppId: selectedBetId.user_app_id,
-                        flow: "withdraw",
-                        return: "/withdraw",
-                        targetStep: "5",
-                      })
-                      router.push(`/add-phone?${params.toString()}`)
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t("addPhone")} ({selectedNetwork?.public_name})
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                  {selectedPlatform?.why_withdrawal_fail && (
+                    <div 
+                      onClick={() => window.open(selectedPlatform.why_withdrawal_fail!, "_blank")}
+                      className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-emerald-500/20 shadow-sm flex items-center gap-4 cursor-pointer active:scale-95 transition-all hover:bg-emerald-500/5"
+                    >
+                      <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Info className="h-6 w-6 text-emerald-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] uppercase tracking-wider text-emerald-500 font-bold">Aide retrait</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                          Pourquoi mon retrait a échoué ?
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-        {/* Step 5: Help Screen (Conditional) */}
-        {step === 5 && hasHelpStep && (
-          <div className="space-y-6 animate-scale-in">
-            <div className="text-center space-y-2 py-4">
-              <h2 className="text-2xl font-bold section-title">Besoin d'aide ?</h2>
-              <p className="text-muted-foreground text-sm max-w-[280px] mx-auto">
-                Consultez nos tutoriels vidéo pour faciliter votre retrait.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              {selectedPlatform?.withdrawal_tuto_link && (
-                <div 
-                  onClick={() => window.open(selectedPlatform.withdrawal_tuto_link!, "_blank")}
-                  className="glass-panel p-4 rounded-3xl border border-primary/10 shadow-lg flex items-center gap-4 cursor-pointer active:scale-95 transition-all hover:bg-white/40"
+                <Button 
+                  onClick={() => setStep(6)}
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/20 mt-4"
                 >
-                  <div className="w-16 h-12 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0 border border-primary/20">
-                    <Youtube className="h-8 w-8 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] uppercase tracking-wider text-primary/60 font-bold">Tutoriel vidéo</p>
-                    <p className="text-sm font-bold leading-tight">
-                      Comment obtenir un code {selectedPlatform?.name || "1XBET"} ?
-                    </p>
-                  </div>
-                  <ArrowLeft className="h-5 w-5 text-primary/30 rotate-180" />
-                </div>
-              )}
-
-              {selectedPlatform?.why_withdrawal_fail && (
-                <div 
-                  onClick={() => window.open(selectedPlatform.why_withdrawal_fail!, "_blank")}
-                  className="glass-panel p-4 rounded-3xl border border-primary/10 shadow-lg flex items-center gap-4 cursor-pointer active:scale-95 transition-all hover:bg-white/40"
-                >
-                  <div className="w-16 h-12 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0 border border-primary/20">
-                    <Youtube className="h-8 w-8 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] uppercase tracking-wider text-primary/60 font-bold">Aide retrait</p>
-                    <p className="text-sm font-bold leading-tight">
-                      Pourquoi mon retrait a échoué ?
-                    </p>
-                  </div>
-                  <ArrowLeft className="h-5 w-5 text-primary/30 rotate-180" />
-                </div>
-              )}
-            </div>
-
-            <div className="pt-8">
-              <Button 
-                onClick={() => setStep(6)}
-                className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white text-base font-extrabold shadow-xl shadow-primary/20"
-              >
-                J'ai déjà un code de retrait
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 6: Enter Amount and Withdrawal Code */}
-        {((step === 6) || (step === 5 && !hasHelpStep)) && (
-          <Card className="floating-card">
-            <CardHeader>
-              <CardTitle className="mobile-heading">{t("enterAmount")}</CardTitle>
-              <CardDescription className="mobile-text">
-                Montant: {selectedPlatform?.minimun_with} - {selectedPlatform?.max_win} FCFA
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
-                <Label htmlFor="amount" className="mobile-text font-medium">{t("amount")} (FCFA)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  placeholder="1000"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="mobile-form-input text-lg"
-                />
+                  J'ai déjà mon code, continuer
+                </Button>
               </div>
+            )}
 
-              <div className="space-y-3">
-                <Label htmlFor="withdrawalCode" className="mobile-text font-medium">{t("withdrawalCode")}</Label>
-                <Input
-                  id="withdrawalCode"
-                  type="text"
-                  placeholder="1234"
-                  value={withdrawalCode}
-                  onChange={(e) => setWithdrawalCode(e.target.value)}
-                  className="mobile-form-input text-lg"
-                />
-                <p className="mobile-text text-muted-foreground">
-                  Entrez le code de retrait fourni par votre plateforme de paris
-                </p>
-              </div>
-
-              {/* Tutoriels moved to separate step */}
-
-              {/* Summary */}
-              <div className="p-4 bg-muted rounded-lg space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("platform")}</span>
-                  <span className="font-medium">{selectedPlatform?.name}</span>
-                </div>
-                {selectedPlatform?.city && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Ville</span>
-                    <span className="font-medium">{selectedPlatform.city}</span>
-                  </div>
-                )}
-                {selectedPlatform?.street && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Rue</span>
-                    <span className="font-medium">{selectedPlatform.street}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">ID de pari</span>
-                  <span className="font-medium">{selectedBetId?.user_app_id}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("network")}</span>
-                  <span className="font-medium">{selectedNetwork?.public_name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("phone")}</span>
-                  <span className="font-medium">{selectedPhone?.phone}</span>
-                </div>
-              </div>
-
-              {/* Network Withdrawal Message */}
-              {selectedNetwork?.withdrawal_message && selectedNetwork.withdrawal_message.trim() !== "" && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <p className="text-sm text-blue-900 dark:text-blue-100 whitespace-pre-line">
-                    {selectedNetwork.withdrawal_message}
+            {/* Step 6: Enter Amount and Code */}
+            {((step === 6) || (step === 5 && !hasHelpStep)) && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t("enterAmount")}</h2>
+                  <p className="text-xs text-slate-500">
+                    Montant de {selectedPlatform?.minimun_with.toLocaleString()} à {selectedPlatform?.max_win.toLocaleString()} FCFA
                   </p>
                 </div>
-              )}
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("amount")} (FCFA)</Label>
+                    <div className="relative">
+                      <Input
+                        id="amount"
+                        type="number"
+                        placeholder="1000"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="h-14 text-xl font-bold bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl pl-4 pr-16 focus:ring-emerald-500"
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">FCFA</div>
+                    </div>
+                  </div>
 
-              <div className="flex items-start space-x-3 pt-2">
-                <Checkbox
-                  id="terms-withdraw"
-                  checked={acceptTerms}
-                  onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-                  className="mt-1"
-                />
-                <Label htmlFor="terms-withdraw" className="text-sm leading-relaxed text-muted-foreground font-normal">
-                  En cliquant sur Suivant, vous acceptez nos <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#002d72] hover:underline">conditions d'utilisation</a> et confirmez que vous avez plus de 18 ans.
-                </Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="withdrawalCode" className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("withdrawalCode")}</Label>
+                    <Input
+                      id="withdrawalCode"
+                      type="text"
+                      placeholder="Ex: 12345678"
+                      value={withdrawalCode}
+                      onChange={(e) => setWithdrawalCode(e.target.value)}
+                      className="h-14 text-xl font-bold bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl pl-4 focus:ring-emerald-500"
+                    />
+                    <p className="text-[10px] text-slate-500">Entrez le code de retrait fourni par votre plateforme de paris</p>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="p-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl space-y-2.5 border border-slate-100 dark:border-slate-800 mt-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500 font-medium">{t("platform")}</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedPlatform?.name}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500 font-medium">ID de pari</span>
+                      <span className="font-bold text-slate-900 dark:text-white font-mono">{selectedBetId?.user_app_id}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500 font-medium">Réseau</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedNetwork?.public_name}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500 font-medium">Téléphone</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{selectedPhone?.phone}</span>
+                    </div>
+                  </div>
+
+                  {/* Network Withdrawal Message */}
+                  {selectedNetwork?.withdrawal_message && selectedNetwork.withdrawal_message.trim() !== "" && (
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                      <div className="flex gap-2">
+                        <Info className="h-4 w-4 text-emerald-500 shrink-0" />
+                        <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium leading-relaxed whitespace-pre-line">
+                          {selectedNetwork.withdrawal_message}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-start space-x-3 pt-2">
+                    <Checkbox
+                      id="terms-withdraw"
+                      checked={acceptTerms}
+                      onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                      className="mt-1 border-slate-300 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                    />
+                    <Label htmlFor="terms-withdraw" className="text-[11px] leading-relaxed text-slate-500 font-normal">
+                      En continuant, vous acceptez nos <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="font-bold text-emerald-600 hover:underline">conditions d'utilisation</a> et confirmez avoir plus de 18 ans.
+                    </Label>
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            )}
+          </div>
+        </div>
 
         {/* Navigation Buttons */}
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           {step > 1 && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 if (step === 6 && hasHelpStep) {
                   setStep(5)
@@ -1205,18 +1196,29 @@ function WithdrawContent() {
                   setStep(step - 1)
                 }
               }} 
-              className="flex-1 h-11"
+              className="flex-1 h-12 rounded-xl border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
             >
-              {t("previous")}
+              Précédent
             </Button>
           )}
           {step !== 5 || !hasHelpStep ? (
-            <Button onClick={handleNext} className="flex-1 h-11">
-              {((step === 6) || (step === 5 && !hasHelpStep)) ? t("confirm") : t("next")}
+            <Button 
+              onClick={handleNext} 
+              className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all active:scale-[0.98]"
+            >
+              {withdrawalMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Traitement...
+                </>
+              ) : ((step === 6) || (step === 5 && !hasHelpStep)) ? "Confirmer" : "Suivant"}
             </Button>
           ) : null}
         </div>
-      </main>
+
+      </div>
+    </div>
+  </div>
 
       {/* Bet ID Edit Dialog */}
       <Dialog open={betEditDialogOpen} onOpenChange={(open) => (!open ? resetBetEditDialog() : setBetEditDialogOpen(true))}>
@@ -1409,7 +1411,7 @@ function WithdrawContent() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }
 
