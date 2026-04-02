@@ -429,11 +429,11 @@ function DashboardContent() {
       <Popover open={messageMenuOpen} onOpenChange={setMessageMenuOpen}>
         <PopoverTrigger asChild>
           <Button
-            className="fixed right-4 bottom-24 h-14 w-14 rounded-2xl bg-slate-900 text-white shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 ring-4 ring-slate-900/20 z-50 flex items-center justify-center"
+            className="fixed right-4 bottom-24 h-14 w-14 rounded-2xl bg-primary text-primary-foreground shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 ring-4 ring-primary/20 z-50 flex items-center justify-center"
             aria-label="Ouvrir le chat"
           >
             <TelegramIcon className="h-7 w-7" />
-            <div className="absolute inset-0 rounded-2xl opacity-0 hover:opacity-100 transition-opacity blur-md bg-slate-900/40" />
+            <div className="absolute inset-0 rounded-2xl opacity-0 hover:opacity-100 transition-opacity blur-md bg-primary/40" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-2 mb-2 mr-2 rounded-2xl border-2 dark:border-slate-800 shadow-2xl bg-white dark:bg-slate-900" align="end" side="top" sideOffset={12}>
