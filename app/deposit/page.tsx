@@ -499,9 +499,8 @@ function DepositContent() {
 
     if (isOrange && isConnect && orangeMerchantPhone) {
       const paymentByLink = data.payment_by_link === true
-      const hasTransactionLink = data.transaction_link
 
-      if (paymentByLink && hasTransactionLink) {
+      if (paymentByLink && data.transaction_link) {
         setTransactionLink(data.transaction_link)
         setShowTransactionLinkDialog(true)
         return
