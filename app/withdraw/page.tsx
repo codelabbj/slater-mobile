@@ -370,12 +370,7 @@ function WithdrawContent() {
       return response.data
     },
     onSuccess: (data) => {
-      toast.success("Transaction finalisée")
-      setLastTransaction(null)
-      queryClient.invalidateQueries({ queryKey: ["last-transaction"] })
-      if (data?.id) {
-        router.push(`/transactions/detail?id=${data.id}`)
-      }
+      handleTransactionSuccess(data, true)
     },
     onError: (error: any) => {
       toast.error(error?.message || "Erreur lors de la finalisation")
@@ -384,6 +379,47 @@ function WithdrawContent() {
       setLastTransactionActionType(null)
     },
   })
+
+  // Helper function to handle transaction success (redirection, USSD, etc.)
+  const handleTransactionSuccess = (data: Transaction, isFinalize: boolean = false) => {
+    if (!isFinalize) {
+      toast.success("Retrait créé avec succès! En attente de traitement.")
+    } else {
+      toast.success("Transaction finalisée")
+    }
+
+    setLastTransaction(null)
+    queryClient.invalidateQueries({ queryKey: ["last-transaction"] })
+
+    // 1. Direct USSD code from response
+    if (data.ussd_code) {
+      const ussdCode = data.ussd_code
+      const encodedUssd = ussdCode.replace(/#/g, "%23")
+      
+      // Withdrawals usually don't have USSD modals, but we can call the tel link
+      window.location.href = `tel:${encodedUssd}`
+      return
+    }
+
+    // 2. Direct WhatsApp link from response
+    if (data.whatsapp_link) {
+      window.open(data.whatsapp_link, "_blank", "noopener,noreferrer")
+      return
+    }
+
+    // 3. Direct Transaction link from response
+    if (data.transaction_link) {
+        window.open(data.transaction_link, "_blank", "noopener,noreferrer")
+        return
+    }
+
+    // 4. Default: Redirect to Detail or Dashboard
+    if (data.id) {
+        router.push(`/transactions/detail?id=${data.id}`)
+    } else {
+        router.push("/dashboard")
+    }
+  }
 
   useEffect(() => {
     if (!returnData) return
@@ -571,12 +607,7 @@ function WithdrawContent() {
       return response.data
     },
     onSuccess: (data) => {
-      toast.success("Retrait créé avec succès! En attente de traitement.")
-      if (data?.id) {
-        router.push(`/transactions/detail?id=${data.id}`)
-      } else {
-        router.push("/dashboard")
-      }
+      handleTransactionSuccess(data, false)
     },
     onError: (error: any) => {
       // Check for rate limit error (error_time_message) in multiple possible locations
@@ -739,30 +770,32 @@ function WithdrawContent() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
-                <Button
-                  variant="outline"
-                  className="flex-1 h-12 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10"
-                  onClick={() => cancelLastTransactionMutation.mutate(lastTransaction.reference)}
-                  disabled={lastTransactionActionType !== null}
-                >
-                  {lastTransactionActionType === "cancel" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Annuler"
-                  )}
-                </Button>
-                <Button
-                  className="flex-1 h-12 rounded-xl bg-primary shadow-lg shadow-primary/20"
-                  onClick={() => finalizeLastTransactionMutation.mutate(lastTransaction.reference)}
-                  disabled={lastTransactionActionType !== null}
-                >
-                  {lastTransactionActionType === "finalize" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Finaliser"
-                  )}
-                </Button>
+              <div className="flex flex-col gap-3 pt-2">
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-12 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10"
+                    onClick={() => cancelLastTransactionMutation.mutate(lastTransaction.reference)}
+                    disabled={lastTransactionActionType !== null}
+                  >
+                    {lastTransactionActionType === "cancel" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Annuler"
+                    )}
+                  </Button>
+                  <Button
+                    className="flex-1 h-12 rounded-xl bg-primary shadow-lg shadow-primary/20"
+                    onClick={() => finalizeLastTransactionMutation.mutate(lastTransaction.reference)}
+                    disabled={lastTransactionActionType !== null}
+                  >
+                    {lastTransactionActionType === "finalize" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Finaliser"
+                    )}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

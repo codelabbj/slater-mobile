@@ -409,12 +409,7 @@ function DepositContent() {
       return response.data
     },
     onSuccess: (data) => {
-      toast.success("Transaction finalisée")
-      setLastTransaction(null)
-      queryClient.invalidateQueries({ queryKey: ["last-transaction"] })
-      if (data?.id) {
-        router.push(`/transactions/detail?id=${data.id}`)
-      }
+      handleTransactionSuccess(data, true)
     },
     onError: (error: any) => {
       toast.error(error?.message || "Erreur lors de la finalisation")
@@ -423,6 +418,132 @@ function DepositContent() {
       setLastTransactionActionType(null)
     },
   })
+
+  // Helper function to handle transaction success (redirection, USSD, etc.)
+  const handleTransactionSuccess = (data: Transaction, isFinalize: boolean = false) => {
+    if (!isFinalize) {
+      toast.success("Dépôt créé avec succès! En attente de confirmation.")
+    } else {
+      toast.success("Transaction finalisée")
+    }
+
+    setLastTransaction(null)
+    queryClient.invalidateQueries({ queryKey: ["last-transaction"] })
+
+    // 1. Direct USSD code from response
+    if (data.ussd_code) {
+      const ussdCode = data.ussd_code
+      const encodedUssd = ussdCode.replace(/#/g, "%23")
+      const lowerCode = ussdCode.toLowerCase()
+      
+      if (lowerCode.includes("*155*") || lowerCode.includes("moov")) {
+        setMoovUssdCode(ussdCode)
+        setShowMoovUssdDialog(true)
+      } else if (lowerCode.includes("*144*") || lowerCode.includes("orange")) {
+        setOrangeUssdCode(ussdCode)
+        setShowOrangeUssdDialog(true)
+      } else if (lowerCode.includes("*133*") || lowerCode.includes("mtn")) {
+        setMtnUssdCode(ussdCode)
+        setShowMtnUssdDialog(true)
+      }
+
+      setTimeout(() => {
+        window.location.href = `tel:${encodedUssd}`
+      }, 500)
+      return
+    }
+
+    // 2. Direct WhatsApp link from response
+    if (data.whatsapp_link) {
+      window.open(data.whatsapp_link, "_blank", "noopener,noreferrer")
+      return
+    }
+
+    // 3. Check if transaction_link exists (Direct Link)
+    if (data.transaction_link && !data.payment_by_link) {
+        setTransactionLink(data.transaction_link)
+        setShowTransactionLinkDialog(true)
+        return
+    }
+
+    // 4. Fallback Manual Logic for Connect API
+    const txNetwork = networks?.find(n => n.id === data.network) || selectedNetwork
+    const networkName = txNetwork?.name?.toLowerCase() || ""
+    const networkPublicName = txNetwork?.public_name?.toLowerCase() || ""
+    const countryCode = txNetwork?.country_code?.toLowerCase() || ""
+    const isConnect = txNetwork?.deposit_api === "connect"
+    const txAmount = data.amount || Number(amount)
+
+    // MOOV Manual Logic
+    const isMoov = networkName.includes("moov") || networkPublicName.includes("moov")
+    const moovMerchantPhone = countryCode === "bf" && settings?.bf_moov_marchand_phone
+        ? settings.bf_moov_marchand_phone
+        : settings?.moov_marchand_phone
+
+    if (isMoov && isConnect && moovMerchantPhone) {
+      const amountMinusOnePercent = Math.floor(txAmount * 0.99)
+      const ussdCodeManual = `*155*2*1*${moovMerchantPhone}*${amountMinusOnePercent}#`
+      setMoovUssdCode(ussdCodeManual)
+      setShowMoovUssdDialog(true)
+      setTimeout(() => {
+        window.location.href = `tel:${ussdCodeManual.replace(/#/g, "%23")}`
+      }, 500)
+      return
+    }
+
+    // ORANGE Manual Logic
+    const isOrange = networkName.includes("orange") || networkPublicName.includes("orange")
+    const orangeMerchantPhone = countryCode === "bf" && settings?.bf_orange_marchand_phone
+        ? settings.bf_orange_marchand_phone
+        : settings?.orange_marchand_phone
+
+    if (isOrange && isConnect && orangeMerchantPhone) {
+      const paymentByLink = data.payment_by_link === true
+      const hasTransactionLink = data.transaction_link
+
+      if (paymentByLink && hasTransactionLink) {
+        setTransactionLink(data.transaction_link)
+        setShowTransactionLinkDialog(true)
+        return
+      } else {
+        const ussdCodeManual = `*144*2*1*${orangeMerchantPhone}*${txAmount}#`
+        setOrangeUssdCode(ussdCodeManual)
+        setShowOrangeUssdDialog(true)
+        setTimeout(() => {
+          window.location.href = `tel:${ussdCodeManual.replace(/#/g, "%23")}`
+        }, 500)
+        return
+      }
+    }
+
+    // MTN Manual Logic
+    const isMtn = networkName.includes("mtn") || networkPublicName.includes("mtn")
+    const mtnMerchantPhone = countryCode === "bf" && settings?.bf_mtn_marchand_phone
+        ? settings.bf_mtn_marchand_phone
+        : settings?.mtn_marchand_phone
+
+    if (isMtn && isConnect && mtnMerchantPhone) {
+      const ussdCodeManual = `*133*7*${mtnMerchantPhone}#`
+      setMtnUssdCode(ussdCodeManual)
+      setShowMtnUssdDialog(true)
+      setTimeout(() => {
+        window.location.href = `tel:${ussdCodeManual.replace(/#/g, "%23")}`
+      }, 500)
+      return
+    }
+
+    // 5. Final fallback
+    if (data.transaction_link) {
+      setTransactionLink(data.transaction_link)
+      setShowTransactionLinkDialog(true)
+    } else {
+      if (data.id) {
+        router.push(`/transactions/detail?id=${data.id}`)
+      } else {
+        router.push("/dashboard")
+      }
+    }
+  }
 
   useEffect(() => {
     if (!returnData) return
@@ -612,178 +733,7 @@ function DepositContent() {
       return response.data
     },
     onSuccess: (data) => {
-      toast.success("Dépôt créé avec succès! En attente de confirmation.")
-
-      // Check if MOOV network with connect deposit_api and redirect to phone dial
-      const networkName = selectedNetwork?.name?.toLowerCase() || ""
-      const networkPublicName = selectedNetwork?.public_name?.toLowerCase() || ""
-      const isMoovNetwork = networkName.includes("moov") || networkPublicName.includes("moov")
-      const hasConnectDepositApi = selectedNetwork?.deposit_api === "connect"
-      const isBurkinaFasoMoov = selectedNetwork?.country_code?.toLowerCase() === "bf"
-
-      // Use BF-specific phone number if available, otherwise fallback to regular
-      const moovMerchantPhone = isBurkinaFasoMoov && settings?.bf_moov_marchand_phone
-        ? settings.bf_moov_marchand_phone
-        : settings?.moov_marchand_phone
-
-      console.log("MOOV Check:", {
-        networkName,
-        networkPublicName,
-        isMoovNetwork,
-        depositApi: selectedNetwork?.deposit_api,
-        hasConnectDepositApi,
-        hasSettings: !!settings,
-        countryCode: selectedNetwork?.country_code,
-        isBurkinaFaso: isBurkinaFasoMoov,
-        moovMerchantPhone,
-      })
-
-      if (isMoovNetwork && hasConnectDepositApi && moovMerchantPhone) {
-        const transactionAmount = Number(amount)
-        const amountMinusOnePercent = Math.floor(transactionAmount * 0.99)
-        const ussdCode = `*155*2*1*${moovMerchantPhone}*${amountMinusOnePercent}#`
-        const encodedUssd = ussdCode.replace(/#/g, "%23")
-        const telLink = `tel:${encodedUssd}`
-
-        console.log("Opening USSD code:", ussdCode, "Tel link:", telLink)
-        setMoovUssdCode(ussdCode)
-        setShowMoovUssdDialog(true)
-
-        // Use setTimeout to ensure settings are available and allow toast to show
-        setTimeout(() => {
-          // Try using anchor element click which works better on some mobile browsers
-          const link = document.createElement("a")
-          link.href = telLink
-          link.style.display = "none"
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-        }, 500)
-        return
-      }
-
-      // Check if ORANGE network with connect deposit_api and redirect to phone dial or show transaction link
-      const isOrangeNetwork = networkName.includes("orange") || networkPublicName.includes("orange")
-      const hasOrangeConnectDepositApi = selectedNetwork?.deposit_api === "connect"
-      const isBurkinaFasoOrange = selectedNetwork?.country_code?.toLowerCase() === "bf"
-
-      // Use BF-specific phone number if available, otherwise fallback to regular
-      const orangeMerchantPhone = isBurkinaFasoOrange && settings?.bf_orange_marchand_phone
-        ? settings.bf_orange_marchand_phone
-        : settings?.orange_marchand_phone
-
-      console.log("Orange Check:", {
-        networkName,
-        networkPublicName,
-        isOrangeNetwork,
-        depositApi: selectedNetwork?.deposit_api,
-        hasOrangeConnectDepositApi,
-        hasSettings: !!settings,
-        countryCode: selectedNetwork?.country_code,
-        isBurkinaFaso: isBurkinaFasoOrange,
-        orangeMerchantPhone,
-        paymentByLink: data?.payment_by_link,
-        transactionLink: data?.transaction_link,
-      })
-
-      if (isOrangeNetwork && hasOrangeConnectDepositApi && orangeMerchantPhone) {
-        // Check payment_by_link key from transaction response
-        const paymentByLink = data?.payment_by_link === true
-        const hasTransactionLink = data?.transaction_link
-
-        console.log("Orange Payment Logic:", {
-          paymentByLink,
-          hasTransactionLink,
-          willShowModal: paymentByLink && hasTransactionLink,
-          willUsePhoneDialer: !paymentByLink || !hasTransactionLink,
-        })
-
-        if (paymentByLink && hasTransactionLink) {
-          // Show transaction link modal instead of phone dialer
-          setTransactionLink(data.transaction_link)
-          setShowTransactionLinkDialog(true)
-          return
-        } else {
-          // Use phone dialer for Orange network with USSD code
-          const transactionAmount = Number(amount)
-          const ussdCode = `*144*2*1*${orangeMerchantPhone}*${transactionAmount}#`
-          const encodedUssd = ussdCode.replace(/#/g, "%23")
-          const telLink = `tel:${encodedUssd}`
-
-          console.log("Opening Orange USSD code:", ussdCode, "Tel link:", telLink)
-          setOrangeUssdCode(ussdCode)
-          setShowOrangeUssdDialog(true)
-
-          // Use setTimeout to ensure settings are available and allow toast to show
-          setTimeout(() => {
-            // Try using anchor element click which works better on some mobile browsers
-            const link = document.createElement("a")
-            link.href = telLink
-            link.style.display = "none"
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-          }, 500)
-          return
-        }
-      }
-
-      // Check if MTN network with connect deposit_api and redirect to phone dial
-      const isMtnNetwork = networkName.includes("mtn") || networkPublicName.includes("mtn")
-      const hasMtnConnectDepositApi = selectedNetwork?.deposit_api === "connect"
-      const isBurkinaFasoMtn = selectedNetwork?.country_code?.toLowerCase() === "bf"
-
-      // Use BF-specific phone number if available, otherwise fallback to regular
-      const mtnMerchantPhone = isBurkinaFasoMtn && settings?.bf_mtn_marchand_phone
-        ? settings.bf_mtn_marchand_phone
-        : settings?.mtn_marchand_phone
-
-      console.log("MTN Check:", {
-        networkName,
-        networkPublicName,
-        isMtnNetwork,
-        depositApi: selectedNetwork?.deposit_api,
-        hasMtnConnectDepositApi,
-        hasSettings: !!settings,
-        countryCode: selectedNetwork?.country_code,
-        isBurkinaFaso: isBurkinaFasoMtn,
-        mtnMerchantPhone,
-      })
-
-      if (isMtnNetwork && hasMtnConnectDepositApi && mtnMerchantPhone) {
-        const transactionAmount = Number(amount)
-        const ussdCode = `*133*7*${mtnMerchantPhone}#`
-        const encodedUssd = ussdCode.replace(/#/g, "%23")
-        const telLink = `tel:${encodedUssd}`
-
-        console.log("Opening MTN USSD code:", ussdCode, "Tel link:", telLink)
-        setMtnUssdCode(ussdCode)
-        setShowMtnUssdDialog(true)
-
-        // Use setTimeout to ensure settings are available and allow toast to show
-        setTimeout(() => {
-          // Try using anchor element click which works better on some mobile browsers
-          const link = document.createElement("a")
-          link.href = telLink
-          link.style.display = "none"
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-        }, 500)
-        return
-      }
-
-      // Check if transaction_link exists in the response (fallback for other networks)
-      if (data?.transaction_link) {
-        setTransactionLink(data.transaction_link)
-        setShowTransactionLinkDialog(true)
-      } else {
-        if (data?.id) {
-          router.push(`/transactions/detail?id=${data.id}`)
-        } else {
-          router.push("/dashboard")
-        }
-      }
+      handleTransactionSuccess(data, false)
     },
     onError: (error: any) => {
       // Check for rate limit error (error_time_message) in multiple possible locations
@@ -955,30 +905,32 @@ function DepositContent() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
-                <Button
-                  variant="outline"
-                  className="flex-1 h-12 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10"
-                  onClick={() => cancelLastTransactionMutation.mutate(lastTransaction.reference)}
-                  disabled={lastTransactionActionType !== null}
-                >
-                  {lastTransactionActionType === "cancel" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Annuler"
-                  )}
-                </Button>
-                <Button
-                  className="flex-1 h-12 rounded-xl bg-primary shadow-lg shadow-primary/20"
-                  onClick={() => finalizeLastTransactionMutation.mutate(lastTransaction.reference)}
-                  disabled={lastTransactionActionType !== null}
-                >
-                  {lastTransactionActionType === "finalize" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Finaliser"
-                  )}
-                </Button>
+              <div className="flex flex-col gap-3 pt-2">
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-12 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10"
+                    onClick={() => cancelLastTransactionMutation.mutate(lastTransaction.reference)}
+                    disabled={lastTransactionActionType !== null}
+                  >
+                    {lastTransactionActionType === "cancel" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Annuler"
+                    )}
+                  </Button>
+                  <Button
+                    className="flex-1 h-12 rounded-xl bg-primary shadow-lg shadow-primary/20"
+                    onClick={() => finalizeLastTransactionMutation.mutate(lastTransaction.reference)}
+                    disabled={lastTransactionActionType !== null}
+                  >
+                    {lastTransactionActionType === "finalize" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Finaliser"
+                    )}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

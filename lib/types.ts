@@ -86,6 +86,10 @@ export interface Transaction {
     active_for_deposit?: boolean
     active_for_with?: boolean
   }
+  transaction_link?: string
+  ussd_code?: string
+  payment_by_link?: boolean
+  whatsapp_link?: string
 }
 
 export interface Notification {
