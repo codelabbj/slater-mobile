@@ -49,19 +49,26 @@ function TransactionDetailContent() {
     queryFn: async () => {
       if (!id) throw new Error("ID requis")
       
-      // First try direct ID access if the backend supports it
+      // First try sessionStorage
       try {
-        const response = await api.get<Transaction>(`/mobcash/transaction-history/${id}/`)
-        return response.data
-      } catch (err) {
-        // Fallback: fetch history and find the transaction
-        const response = await api.get<{ results: Transaction[] }>("/mobcash/transaction-history", {
-          params: { page_size: 100 }
-        })
-        const found = response.data.results.find(t => t.id === Number(id))
-        if (!found) throw new Error("Transaction not found")
-        return found
-      }
+        const cached = sessionStorage.getItem('cached_transaction')
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          if (String(parsed.id) === String(id) || String(parsed.reference) === String(id) || String(parsed.uid) === String(id)) {
+            return parsed
+          }
+        }
+      } catch (e) {}
+
+      // Fallback: fetch history and find the transaction without triggering a 404
+      const response = await api.get<{ results: Transaction[] }>("/mobcash/transaction-history", {
+        params: { page_size: 100 }
+      })
+      const found = response.data.results.find(t => String(t.id) === String(id) || String(t.reference) === String(id) || String(t.uid) === String(id))
+      if (!found) throw new Error("Transaction not found")
+      
+      sessionStorage.setItem('cached_transaction', JSON.stringify(found))
+      return found
     },
     enabled: !!id
   })

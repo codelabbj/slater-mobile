@@ -428,6 +428,7 @@ function DepositContent() {
     }
 
     setLastTransaction(null)
+    sessionStorage.setItem('cached_transaction', JSON.stringify(data))
     queryClient.invalidateQueries({ queryKey: ["last-transaction"] })
 
     // 1. Direct USSD code from response
