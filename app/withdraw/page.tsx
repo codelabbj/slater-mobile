@@ -1173,6 +1173,18 @@ function WithdrawContent() {
                       <span className="text-slate-500 font-medium">{t("platform")}</span>
                       <span className="font-bold text-slate-900 dark:text-white">{selectedPlatform?.name}</span>
                     </div>
+                    {selectedPlatform?.city && (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500 font-medium">Ville</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{selectedPlatform.city}</span>
+                      </div>
+                    )}
+                    {selectedPlatform?.street && (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500 font-medium">Rue</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{selectedPlatform.street}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-slate-500 font-medium">ID de pari</span>
                       <span className="font-bold text-slate-900 dark:text-white font-mono">{selectedBetId?.user_app_id}</span>
