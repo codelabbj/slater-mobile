@@ -5,7 +5,7 @@ import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
-import { Bell, Sun, Moon, UserCircle, LogOut, ChevronDown, User as UserIcon, Home, Wallet, History, Ticket, Gift } from "lucide-react"
+import { Bell, Sun, Moon, UserCircle, LogOut, ChevronDown, User as UserIcon, Home, Wallet, History, Ticket, Gift, ArrowLeft } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -27,7 +27,15 @@ const navLinks = [
   { href: "/bonus", label: "Bonus", icon: Gift },
 ]
 
-export function AppBar() {
+export function AppBar({
+  showBackButton = false,
+  backHref = "/dashboard",
+  title,
+}: {
+  showBackButton?: boolean
+  backHref?: string
+  title?: string
+} = {}) {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [scrolled, setScrolled] = useState(false)
@@ -80,19 +88,33 @@ export function AppBar() {
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
-              <img
-                src="/Slater-logo.png"
-                alt="Slater"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-400 dark:to-blue-300 drop-shadow-sm">
-              Slater
-            </span>
-          </Link>
+          {/* Navigation/Logo */}
+          <div className="flex items-center gap-3">
+            {showBackButton ? (
+              <button
+                onClick={() => router.push(backHref)}
+                className="p-2 -ml-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <ArrowLeft className="h-6 w-6 text-slate-600 dark:text-slate-300" />
+              </button>
+            ) : (
+              <Link href="/dashboard" className="flex items-center gap-2 group">
+                <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
+                  <img src="/Slater-logo.png" alt="Slater" className="w-full h-full object-cover" />
+                </div>
+                {!title && (
+                  <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-400 dark:to-blue-300 drop-shadow-sm">
+                    Slater
+                  </span>
+                )}
+              </Link>
+            )}
+            {title && (
+              <span className="text-lg font-bold text-slate-900 dark:text-white truncate max-w-[150px] sm:max-w-none">
+                {title}
+              </span>
+            )}
+          </div>
 
           {/* Desktop Nav Links */}
           <nav className="hidden lg:flex items-center gap-1">

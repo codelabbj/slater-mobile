@@ -34,6 +34,7 @@ export interface Platform {
   deposit_tuto_link?: string | null
   withdrawal_tuto_link?: string | null
   why_withdrawal_fail?: string | null
+  public_name?: string
 }
 
 export interface UserPhone {
@@ -110,12 +111,57 @@ export interface Bonus {
   user: string
 }
 
+export interface User {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  balance: number
+  bonus_available: number
+  referral_code: string
+  is_staff: boolean
+  can_publish_coupons?: boolean
+  can_rate_coupons?: boolean
+  coupon_points?: number
+}
+
 export interface Coupon {
-  id: number
+  id: string
   created_at: string
   code: string
-  bet_app: string
-  bet_app_details?: Platform
+  bet_app: Platform
+  author: string
+  author_first_name?: string
+  author_last_name?: string
+  author_rating?: number
+  coupon_type: 'combine' | 'single'
+  odds: string
+  match_count: number
+  average_rating: number
+  total_ratings: number
+  likes_count: number
+  dislikes_count: number
+  user_liked: boolean
+  user_disliked: boolean
+  can_rate: boolean
+  total_comments?: number
+}
+
+export interface CommentAuthor {
+  id: string
+  email: string
+  first_name: string
+  last_name: string
+}
+
+export interface Comment {
+  id: string
+  content: string
+  created_at: string
+  author: CommentAuthor
+  parent_id: string | null
+  replies?: Comment[]
 }
 
 export interface PaginatedResponse<T> {
@@ -124,3 +170,4 @@ export interface PaginatedResponse<T> {
   previous: string | null
   results: T[]
 }
+

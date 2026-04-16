@@ -111,26 +111,23 @@ export const isAuthenticated = async (): Promise<boolean> => {
   return true
 }
 
+// Global promise to track an ongoing refresh
+let refreshPromise: Promise<string | null> | null = null
+
 export const ensureValidToken = async (): Promise<boolean> => {
   try {
     const token = await getAccessToken()
-    console.log('ensureValidToken: access token exists:', !!token)
 
     if (!token) {
-      console.log('ensureValidToken: no access token found')
       return false
     }
 
     // If token is expired, try to refresh it
     const isExpired = isTokenExpired(token)
-    console.log('ensureValidToken: token expired:', isExpired)
 
     if (isExpired) {
-      console.log('ensureValidToken: attempting token refresh...')
       const newToken = await refreshAccessToken()
-      const refreshSuccess = !!newToken
-      console.log('ensureValidToken: token refresh success:', refreshSuccess)
-      return refreshSuccess
+      return !!newToken
     }
 
     // Check if token will expire soon (within 5 minutes) and refresh proactively
@@ -139,106 +136,109 @@ export const ensureValidToken = async (): Promise<boolean> => {
       if (decoded && decoded.exp) {
         const currentTime = Math.floor(Date.now() / 1000)
         const timeUntilExpiry = decoded.exp - currentTime
-        console.log('ensureValidToken: token expires in', timeUntilExpiry, 'seconds')
 
         // If token expires within 5 minutes, refresh it
         if (timeUntilExpiry < 300) {
           console.log('ensureValidToken: token expires soon, refreshing proactively...')
           const newToken = await refreshAccessToken()
-          const proactiveRefreshSuccess = !!newToken
-          console.log('ensureValidToken: proactive refresh success:', proactiveRefreshSuccess)
-          return proactiveRefreshSuccess
+          return !!newToken
         }
-      } else {
-        console.log('ensureValidToken: could not decode token or no exp field')
       }
     } catch (error) {
       console.error('ensureValidToken: error checking token expiry time:', error)
-      // Don't fail validation just because we can't check expiry
     }
 
-    console.log('ensureValidToken: token is valid')
     return true
   } catch (error) {
     console.error('ensureValidToken: unexpected error:', error)
-    // On unexpected errors, assume token is invalid for safety
     return false
   }
 }
 
 export const refreshAccessToken = async (): Promise<string | null> => {
-  const { Capacitor } = await import('@capacitor/core')
+  // If a refresh is already in progress, return that promise
+  if (refreshPromise) {
+    return refreshPromise
+  }
 
-  try {
-    const refreshToken = await PersistentStorage.get("refresh_token")
-    if (!refreshToken) {
-      console.log('refreshAccessToken: No refresh token available')
-      return null
-    }
+  const performRefresh = async (): Promise<string | null> => {
+    try {
+      const { Capacitor } = await import('@capacitor/core')
+      const refreshToken = await PersistentStorage.get("refresh_token")
+      
+      if (!refreshToken) {
+        console.warn('refreshAccessToken: No refresh token available')
+        return null
+      }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net/"
-    const refreshUrl = `${baseUrl}auth/refresh`
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net/"
+      const refreshUrl = `${baseUrl}auth/refresh`
 
-    console.log('refreshAccessToken: Attempting to refresh token...')
+      console.log('refreshAccessToken: Attempting to refresh token...')
 
-    // On mobile, add timeout and retry logic
-    let attempts = 0
-    const maxAttempts = Capacitor.isNativePlatform() ? 2 : 1
+      // On mobile, add timeout and retry logic
+      let attempts = 0
+      const maxAttempts = Capacitor.isNativePlatform() ? 2 : 1
 
-    while (attempts < maxAttempts) {
-      try {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+      while (attempts < maxAttempts) {
+        try {
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-        const response = await fetch(refreshUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ refresh: refreshToken }),
-          signal: controller.signal,
-        })
+          const response = await fetch(refreshUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh: refreshToken }),
+            signal: controller.signal,
+          })
 
-        clearTimeout(timeoutId)
+          clearTimeout(timeoutId)
 
-        if (!response.ok) {
-          const errorText = await response.text().catch(() => 'Unknown error')
-          throw new Error(`Token refresh failed: ${response.status} - ${errorText}`)
-        }
+          if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error')
+            throw new Error(`Token refresh failed: ${response.status} - ${errorText}`)
+          }
 
-        const data = await response.json()
-        const newAccessToken = data.access
+          const data = await response.json()
+          const newAccessToken = data.access
 
-        if (!newAccessToken) {
-          throw new Error('No access token in refresh response')
-        }
+          if (!newAccessToken) {
+            throw new Error('No access token in refresh response')
+          }
 
-        // Save the new access token
-        await PersistentStorage.set("access_token", newAccessToken)
+          // Save the new access token
+          await PersistentStorage.set("access_token", newAccessToken)
 
-        console.log('refreshAccessToken: Access token refreshed successfully')
-        return newAccessToken
+          console.log('refreshAccessToken: Access token refreshed successfully')
+          return newAccessToken
 
-      } catch (fetchError) {
-        attempts++
-        console.warn(`refreshAccessToken: Attempt ${attempts} failed:`, fetchError)
+        } catch (fetchError) {
+          attempts++
+          console.warn(`refreshAccessToken: Attempt ${attempts} failed:`, fetchError)
 
-        if (attempts < maxAttempts) {
-          // Wait before retrying
-          await new Promise(resolve => setTimeout(resolve, 1000))
-        } else {
-          // All attempts failed
-          throw fetchError
+          if (attempts < maxAttempts) {
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000))
+          } else {
+            // All attempts failed
+            throw fetchError
+          }
         }
       }
+    } catch (error) {
+      console.error('refreshAccessToken: Error refreshing access token:', error)
+      return null
+    } finally {
+      // Clear the promise when done
+      refreshPromise = null
     }
-
-  } catch (error) {
-    console.error('refreshAccessToken: Error refreshing access token:', error)
     return null
   }
 
-  return null
+  refreshPromise = performRefresh()
+  return refreshPromise
 }
 
 export const logout = async () => {

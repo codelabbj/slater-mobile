@@ -9,7 +9,8 @@ const api = axios.create({
 
 // Request interceptor to add auth token
 api.interceptors.request.use(async (config) => {
-  console.log('API Request:', config.method?.toUpperCase(), config.url)
+  // Only log in development or for specific errors
+  // console.log('API Request:', config.method?.toUpperCase(), config.url)
 
   // Skip adding auth token for authentication endpoints
   // Check both relative paths and full URLs
@@ -25,15 +26,11 @@ api.interceptors.request.use(async (config) => {
       const token = await getAccessToken()
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
-        console.log('Added auth token to request')
-      } else {
-        console.log('No auth token available for request')
       }
     } catch (error) {
       console.error('Error getting access token for request:', error)
     }
   } else if (isAuthEndpoint) {
-    console.log('Skipping auth token for auth endpoint:', config.url)
     // Explicitly remove any existing authorization header
     delete config.headers.Authorization
   }
@@ -44,49 +41,30 @@ api.interceptors.request.use(async (config) => {
 // Response interceptor for token refresh and error handling
 api.interceptors.response.use(
   (res) => {
-    console.log('API Response:', res.status, res.config.method?.toUpperCase(), res.config.url)
     return res
   },
   async (error) => {
-    console.log('API Error:', error.response?.status, error.config?.method?.toUpperCase(), error.config?.url, error.message)
     const original = error.config
 
     // Handle 401 errors with token refresh
-    if (error.response?.status === 401 && !original._retry) {
-      console.log('Got 401 error, attempting token refresh...')
+    if (error.response?.status === 401 && !original._retry && !original.url?.includes('auth/login')) {
       original._retry = true
 
       if (typeof window !== "undefined") {
         try {
-          const { PersistentStorage } = await import('./storage')
-          const refresh = await PersistentStorage.get("refresh_token")
-          console.log('Refresh token available:', !!refresh)
-          if (!refresh) {
-            throw new Error("No refresh token")
+          const { refreshAccessToken } = await import('./auth')
+          console.log('API Error: 401, attempting token refresh...')
+          
+          const newToken = await refreshAccessToken()
+          
+          if (!newToken) {
+            throw new Error("Token refresh failed")
           }
 
-          console.log('Making refresh request...')
-          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://api.slaterci.net"
-          const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`
-          const res = await axios.post(
-            `${normalizedBaseUrl}auth/refresh`,
-            { refresh },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                // Explicitly no Authorization header for refresh requests
-              }
-            }
-          )
-
-          const newToken = res.data.access
-          console.log('Refresh successful, new token received')
-          await PersistentStorage.set("access_token", newToken)
           original.headers.Authorization = `Bearer ${newToken}`
-
           return api(original)
         } catch (refreshError: any) {
-          console.log('Refresh failed:', refreshError.message || refreshError)
+          console.error('Refresh failed after 401:', refreshError.message || refreshError)
           // Clear tokens and redirect to login
           const { PersistentStorage } = await import('./storage')
           await PersistentStorage.clear()
