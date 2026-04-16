@@ -17,6 +17,7 @@ import {
   Trophy,
   Wallet,
   X,
+  Lock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -64,6 +65,9 @@ function CouponContent() {
   const [commentsLoading, setCommentsLoading] = useState(false)
   const [replyingTo, setReplyingTo] = useState<CouponComment | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [isAccessRestricted, setIsAccessRestricted] = useState(false)
+  const [checkingAccess, setCheckingAccess] = useState(true)
+  const [minDepositRequired, setMinDepositRequired] = useState(0)
 
   // ── Fetch helpers (same logic as blaffa, mobcash endpoints) ──────────────
 
@@ -139,20 +143,43 @@ function CouponContent() {
   // ── useEffect #1: settings check → then load (blaffa-mobile pattern) ─────
   useEffect(() => {
     setMounted(true)
-    const checkSettings = async () => {
+    const checkSettingsAndAccess = async () => {
+      setCheckingAccess(true)
       try {
         const response = await api.get("/mobcash/setting")
         const settings = Array.isArray(response.data) ? response.data[0] : response.data
         
-        // Settings are fetched but the coupon_enable check is ignored for now
+        if (settings?.requires_deposit_to_view_coupon) {
+          const minReq = settings.minimun_deposit_before_view_coupon || 0
+          setMinDepositRequired(minReq)
+          
+          // Check transaction history for a single accepted deposit >= minReq
+          const historyResponse = await api.get<PaginatedResponse<any>>("/mobcash/transaction-history", {
+            params: {
+              type_trans: "deposit",
+              status: "accept",
+              page: 1,
+              page_size: 50
+            }
+          })
+          
+          const results = historyResponse.data.results || []
+          const hasValidDeposit = results.some((t: any) => t.amount >= minReq)
+          
+          if (!hasValidDeposit) {
+            setIsAccessRestricted(true)
+          }
+        }
       } catch (err) {
-        console.error("Error checking settings:", err)
+        console.error("Error checking coupon access:", err)
+      } finally {
+        setCheckingAccess(false)
       }
       fetchPlatforms()
       fetchCoupons()
       fetchUserProfile()
     }
-    checkSettings()
+    checkSettingsAndAccess()
   }, [])
 
   // ── useEffect #2: re-fetch coupons on platform change (blaffa-mobile pattern) ──
@@ -332,7 +359,69 @@ function CouponContent() {
     return `${(first || "").charAt(0)}${(last || "").charAt(0)}`.toUpperCase()
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  if (!mounted) return null
+
+  if (checkingAccess) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 dark:bg-slate-950">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 animate-pulse">Vérification des accès...</p>
+      </div>
+    )
+  }
+
+  if (isAccessRestricted) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
+        <AppBar showBackButton={true} backHref="/dashboard" title="Accès Restreint" />
+        <main className="flex-1 flex items-center justify-center p-6">
+          <Card className="w-full rounded-[3rem] border-0 shadow-2xl overflow-hidden bg-white dark:bg-slate-900 border-b-[12px] border-red-50 dark:border-red-900/10">
+            <CardContent className="p-10 flex flex-col items-center text-center space-y-8">
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500/10 rounded-[2.5rem] blur-3xl opacity-50" />
+                <div className="relative h-24 w-24 rounded-[2.5rem] bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/40 dark:to-red-900/20 flex items-center justify-center border border-red-200 dark:border-red-800 shadow-inner">
+                  <Lock className="h-10 w-10 text-red-500" strokeWidth={2.5} />
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none">Accès Limité</h2>
+                <div className="h-1.5 w-12 bg-red-500 rounded-full mx-auto" />
+                <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed text-sm pt-2">
+                  Vous n'êtes pas autorisé à accéder à la page des coupons tant qu'un dépôt minimum de 
+                  <span className="text-red-500 mx-1 block text-lg font-black mt-1">
+                    {minDepositRequired.toLocaleString("fr-FR", {
+                      style: "currency",
+                      currency: "XOF",
+                      minimumFractionDigits: 0,
+                    })}
+                  </span> 
+                  n'a pas été effectué.
+                </p>
+              </div>
+
+              <div className="w-full pt-4 space-y-4">
+                <Button 
+                  onClick={() => router.push("/deposit")}
+                  className="w-full rounded-[1.75rem] h-16 text-base font-black shadow-xl shadow-primary/20 active:scale-[0.95] transition-all bg-primary hover:bg-primary/90"
+                >
+                  Effectuer un dépôt
+                </Button>
+                <Button 
+                  variant="ghost"
+                  onClick={() => router.push("/dashboard")}
+                  className="w-full h-14 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all"
+                >
+                  Retour
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen pb-24 pt-20">
       <AppBar showBackButton={true} backHref="/dashboard" title="Coupons Mobcash" />
