@@ -424,7 +424,7 @@ function CouponContent() {
 
   return (
     <div className="min-h-screen pb-24 pt-20">
-      <AppBar showBackButton={true} backHref="/dashboard" title="Coupons Mobcash" />
+      <AppBar showBackButton={true} backHref="/dashboard" title="Coupons" />
 
       <main className="mx-auto w-full max-w-md px-4 space-y-6">
 
