@@ -68,6 +68,7 @@ function CouponContent() {
   const [isAccessRestricted, setIsAccessRestricted] = useState(false)
   const [checkingAccess, setCheckingAccess] = useState(true)
   const [minDepositRequired, setMinDepositRequired] = useState(0)
+  const [globalSettings, setGlobalSettings] = useState<any>(null)
 
   // ── Fetch helpers (same logic as blaffa, mobcash endpoints) ──────────────
 
@@ -148,6 +149,7 @@ function CouponContent() {
       try {
         const response = await api.get("/mobcash/setting")
         const settings = Array.isArray(response.data) ? response.data[0] : response.data
+        setGlobalSettings(settings)
         
         if (settings?.requires_deposit_to_view_coupon) {
           const minReq = settings.minimun_deposit_before_view_coupon || 0
@@ -376,7 +378,7 @@ function CouponContent() {
         <AppBar showBackButton={true} backHref="/dashboard" title="Accès Restreint" />
         <main className="flex-1 flex items-center justify-center p-6">
           <Card className="w-full rounded-[3rem] border-0 shadow-2xl overflow-hidden bg-white dark:bg-slate-900 border-b-[12px] border-red-50 dark:border-red-900/10">
-            <CardContent className="p-10 flex flex-col items-center text-center space-y-8">
+            <CardContent className="px-10 py-6 flex flex-col items-center text-center space-y-8">
               <div className="relative">
                 <div className="absolute inset-0 bg-red-500/10 rounded-[2.5rem] blur-3xl opacity-50" />
                 <div className="relative h-24 w-24 rounded-[2.5rem] bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/40 dark:to-red-900/20 flex items-center justify-center border border-red-200 dark:border-red-800 shadow-inner">
@@ -444,45 +446,52 @@ function CouponContent() {
         )}
 
         {/* ── User Profile Card (blaffa-mobile style) ── */}
-        <Card className="rounded-[2rem] border-0 shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900 border-b-4 border-slate-50 dark:border-slate-800">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-12 w-12 rounded-2xl bg-primary/5 border border-primary/10">
-                  <AvatarFallback className="text-lg font-bold text-primary">
+        <Card className="rounded-[2.5rem] border-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] bg-white dark:bg-slate-900 border-b-4 border-slate-50 dark:border-slate-800 transition-all">
+          <CardContent className="px-6 py-4 sm:px-7 sm:py-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6">
+              <div className="flex items-center gap-4 sm:gap-5 w-full sm:w-auto">
+                <Avatar className="h-14 w-14 sm:h-16 sm:w-16 rounded-[1.25rem] sm:rounded-[1.5rem] bg-primary/5 border border-primary/10 shadow-sm shrink-0">
+                  <AvatarFallback className="text-lg sm:text-xl font-bold text-primary">
                     {getInitials(userProfile?.first_name, userProfile?.last_name)}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h3 className="font-black text-base text-slate-900 dark:text-white">
-                    {userProfile ? `${userProfile.first_name} ${userProfile.last_name}` : "Chargement..."}
-                  </h3>
-                  <div className="flex gap-0.5 mt-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star
-                        key={i}
-                        size={14}
-                        className={cn(
-                          i <= 4 ? "fill-yellow-400 text-yellow-400" : "text-slate-200 fill-slate-200"
-                        )}
-                      />
-                    ))}
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex items-center gap-3">
+                    <h3 className="font-black text-xl sm:text-2xl text-slate-900 dark:text-white truncate">
+                      {userProfile ? `${userProfile.first_name} ${userProfile.last_name}` : "Chargement..."}
+                    </h3>
+                    <Badge variant="outline" className="rounded-xl px-2.5 py-0.5 border-primary/20 text-primary text-[9px] sm:text-[10px] uppercase font-black shrink-0">Tipster Pro</Badge>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Star
+                          key={i}
+                          size={14}
+                          className={cn(
+                            i <= 4 ? "fill-yellow-400 text-yellow-400" : "text-slate-200 fill-slate-200"
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[13px] font-bold text-slate-400">• 4.0 de note</span>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                {(userProfile?.can_publish_coupons || 
+              <div className="flex w-full sm:w-auto mt-2 sm:mt-0">
+                {(globalSettings?.allow_all_users_publish_coupons ||
+                  userProfile?.can_publish_coupons || 
                   userProfile?.is_staff || 
                   (userProfile as any)?.is_superuser || 
                   (userProfile as any)?.is_supperuser
                 ) && (
                   <Button
-                    size="icon"
                     onClick={() => router.push("/coupon/create")}
-                    className="h-10 w-10 p-0 rounded-xl shadow-lg shadow-primary/20"
+                    className="w-full sm:w-auto rounded-[1.1rem] h-12 sm:h-11 px-7 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center gap-2 text-sm text-white"
                   >
-                    <Plus className="h-6 w-6" strokeWidth={3} />
+                    <Plus className="h-4 w-4" strokeWidth={3} />
+                    Publier
                   </Button>
                 )}
               </div>
@@ -501,7 +510,7 @@ function CouponContent() {
                 size="sm"
                 variant={selectedPlatformId === null ? "default" : "outline"}
                 onClick={() => setSelectedPlatformId(null)}
-                className="rounded-2xl px-5 font-bold h-11 border-slate-100"
+                className="rounded-2xl px-5 font-bold h-11 border-slate-100 dark:border-slate-800"
               >
                 <Trophy className={cn("h-4 w-4 mr-2", selectedPlatformId === null ? "text-white" : "text-primary")} />
                 Tous
@@ -516,14 +525,14 @@ function CouponContent() {
                       size="sm"
                       variant={selectedPlatformId === platform.id ? "default" : "outline"}
                       onClick={() => setSelectedPlatformId(platform.id)}
-                      className="rounded-2xl px-5 font-bold h-11 border-slate-100"
+                      className="rounded-2xl px-5 font-bold h-11 border-slate-100 dark:border-slate-800"
                     >
                       <img src={platform.image} className="w-4 h-4 mr-2 object-contain" alt="" />
                       {platform.name}
                     </Button>
                   ))}
             </div>
-            <ScrollBar orientation="horizontal" />
+            <ScrollBar orientation="horizontal" className="hidden" />
           </ScrollArea>
         </div>
 
@@ -542,141 +551,112 @@ function CouponContent() {
           ) : (
             <div className="space-y-6">
               {coupons.map((coupon) => (
-                <Card
-                  key={coupon.id}
-                  className="group relative overflow-hidden rounded-[2.5rem] border-0 bg-white dark:bg-slate-950 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all active:scale-[0.98] border-b-8 border-slate-50 dark:border-slate-900"
-                >
-                  <CardContent className="p-8 space-y-7">
-                    {/* Premium Header: Author & Verified Status */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <div className="absolute inset-0 bg-primary/20 rounded-[1.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <Avatar className="h-16 w-16 rounded-[1.5rem] bg-slate-100 dark:bg-slate-900 border-2 border-white dark:border-slate-800 shadow-md relative z-10 transition-transform group-hover:scale-105">
-                            <AvatarFallback className="text-xl font-black text-primary uppercase">
+                <Card key={coupon.id} className="flex flex-col border-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] rounded-[2rem] overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:-translate-y-1 transition-all duration-300 bg-white dark:bg-slate-900 border-b-4 border-slate-50 dark:border-slate-800">
+                  <CardContent className="px-6 py-4 sm:px-7 sm:py-5 flex flex-col h-full justify-between gap-5">
+                    <div className="space-y-5">
+                      {/* Top Row: Author & Ticket Badge */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-11 w-11 rounded-[1.25rem] bg-slate-100 dark:bg-slate-800 border border-slate-50 dark:border-slate-700 shadow-sm">
+                            <AvatarFallback className="text-xs font-bold text-slate-500">
                               {getInitials(coupon.author_first_name, coupon.author_last_name)}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="absolute -bottom-1 -right-1 h-6 w-6 bg-emerald-500 rounded-full border-4 border-white dark:border-slate-950 flex items-center justify-center text-white shadow-lg z-20">
-                            <Check size={10} strokeWidth={4} />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h3 className="font-black text-xl text-slate-900 dark:text-white leading-none tracking-tight">
+                          <div>
+                            <h3 className="font-bold text-[15px] text-slate-900 dark:text-white leading-tight line-clamp-1">
                               {coupon.author_first_name} {coupon.author_last_name}
                             </h3>
-                          </div>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline" className="rounded-xl px-3 py-0.5 h-5 border-primary/20 bg-primary/5 text-primary text-[9px] uppercase font-black tracking-widest">Premium Tipster</Badge>
-                            <div className="flex items-center gap-1">
-                              <Star size={12} className="fill-amber-400 text-amber-400" />
-                              <span className="text-[11px] font-black text-slate-900 dark:text-white">{coupon.author_rating || 4.8}</span>
+                            <div className="flex gap-0.5 mt-1">
+                              {[1, 2, 3, 4, 5].map((i) => (
+                                <Star
+                                  key={i}
+                                  size={11}
+                                  className={cn(
+                                    i <= Math.round(coupon.author_rating || 4)
+                                      ? "fill-yellow-400 text-yellow-400"
+                                      : "text-slate-200 fill-slate-200"
+                                  )}
+                                />
+                              ))}
                             </div>
                           </div>
                         </div>
+                        
+                        {/* Bet Type Pill */}
+                        <Badge className="shrink-0 rounded-xl px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border-0 text-[9px] uppercase font-black tracking-tight flex items-center gap-1.5">
+                          <Ticket size={12} className="rotate-45" />
+                          {coupon.coupon_type === "combine"
+                            ? `Combi (${coupon.match_count})`
+                            : "Simple"}
+                        </Badge>
                       </div>
-                      
-                      <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center border border-slate-100 dark:border-slate-800">
-                        <Trophy size={20} className="text-amber-500" />
-                      </div>
-                    </div>
 
-                    {/* Premium Odds Display */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="relative group/odds bg-slate-50 dark:bg-slate-900/50 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 transition-all hover:border-primary/20 overflow-hidden">
-                        <div className="absolute top-0 right-0 p-3 opacity-10">
-                          <Ticket size={40} className="rotate-12" />
-                        </div>
-                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2 leading-none">CÔTE TOTALE</p>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
+                      {/* Côte & Platform */}
+                      <div className="flex items-center justify-between rounded-[1.5rem] bg-slate-50 dark:bg-slate-800/40 p-4 border border-slate-100 dark:border-slate-800/60">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none">
+                            Côte totale
+                          </p>
+                          <span className="text-[26px] font-black text-slate-900 dark:text-white leading-none tracking-tight">
                             {coupon.odds}
                           </span>
                         </div>
-                      </div>
-
-                      <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-950 p-2.5 shadow-sm border border-slate-100 dark:border-slate-800/50 flex items-center justify-center">
-                          <img src={coupon.bet_app.image} className="w-full h-full object-contain" alt="" />
+                        <div className="flex flex-col items-center gap-1.5">
+                          <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center p-1.5 shadow-sm border border-slate-100 dark:border-slate-700">
+                            <img src={coupon.bet_app.image} className="w-full h-full object-contain" alt="" />
+                          </div>
+                          <span className="font-bold text-[9px] text-slate-500 dark:text-slate-400 max-w-[70px] truncate text-center">
+                            {coupon.bet_app.name}
+                          </span>
                         </div>
-                        <span className="font-black text-[10px] uppercase tracking-widest text-slate-500 leading-none">
-                          {coupon.bet_app.name}
-                        </span>
                       </div>
                     </div>
 
-                    {/* Summary Bar */}
-                    <div className="flex items-center gap-4 py-1">
-                      <div className="h-px flex-1 bg-slate-100 dark:bg-slate-900" />
-                      <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-full border border-slate-100 dark:border-slate-800">
-                        <Ticket size={14} className="text-primary" />
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                          {coupon.coupon_type === "combine" ? `${coupon.match_count} Évènements` : 'Pari Simple'}
-                        </span>
-                      </div>
-                      <div className="h-px flex-1 bg-slate-100 dark:bg-slate-900" />
-                    </div>
-
-                    {/* Action Footer */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => coupon.can_rate && handleVote(coupon.id, "like")}
-                            disabled={!coupon.can_rate && !coupon.user_liked && !coupon.user_disliked}
-                            className={cn(
-                              "h-12 px-5 rounded-[1.5rem] flex items-center gap-2 transition-all active:scale-95 border-2",
-                              coupon.user_liked 
-                                ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" 
-                                : "bg-slate-50 dark:bg-slate-900 border-transparent text-slate-500"
-                            )}
-                          >
-                            <ThumbsUp size={18} className={cn("transition-transform", coupon.user_liked && "scale-110")} />
-                            <span className="text-xs font-black">{coupon.likes_count || 0}</span>
-                          </button>
-                          
-                          <button
-                            onClick={() => coupon.can_rate && handleVote(coupon.id, "dislike")}
-                            disabled={!coupon.can_rate && !coupon.user_liked && !coupon.user_disliked}
-                            className={cn(
-                              "h-12 px-5 rounded-[1.5rem] flex items-center gap-2 transition-all active:scale-95 border-2",
-                              coupon.user_disliked 
-                                ? "bg-red-500 border-red-500 text-white shadow-lg shadow-red-200" 
-                                : "bg-slate-50 dark:bg-slate-900 border-transparent text-slate-500"
-                            )}
-                          >
-                            <ThumbsDown size={18} className={cn("transition-transform", coupon.user_disliked && "scale-110")} />
-                            <span className="text-xs font-black">{coupon.dislikes_count || 0}</span>
-                          </button>
-                        </div>
-
+                    {/* Actions Row */}
+                    <div className="flex items-center justify-between pt-2 mt-auto">
+                      <div className="flex items-center gap-5">
+                        <button
+                          onClick={() => coupon.can_rate && handleVote(coupon.id, "like")}
+                          disabled={!coupon.can_rate && !coupon.user_liked && !coupon.user_disliked}
+                          className={cn(
+                            "flex items-center gap-1.5 text-[13px] font-bold transition-all",
+                            coupon.user_liked ? "text-primary scale-110" : "text-slate-400 hover:text-primary"
+                          )}
+                        >
+                          <ThumbsUp size={18} className={coupon.user_liked ? "fill-current" : ""} />
+                          {coupon.likes_count || 0}
+                        </button>
+                        <button
+                          onClick={() => coupon.can_rate && handleVote(coupon.id, "dislike")}
+                          disabled={!coupon.can_rate && !coupon.user_liked && !coupon.user_disliked}
+                          className={cn(
+                            "flex items-center gap-1.5 text-[13px] font-bold transition-all",
+                            coupon.user_disliked ? "text-red-500 scale-110" : "text-slate-400 hover:text-red-500"
+                          )}
+                        >
+                          <ThumbsDown size={18} className={coupon.user_disliked ? "fill-current" : ""} />
+                          {coupon.dislikes_count || 0}
+                        </button>
                         <button
                           onClick={() => handleOpenComments(coupon)}
-                          className="h-12 w-12 rounded-[1.5rem] bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-500 hover:text-primary transition-all active:scale-95 border border-transparent hover:border-primary/20"
+                          className="flex items-center gap-1.5 text-[13px] font-bold text-slate-400 hover:text-primary transition-all"
                         >
-                          <div className="relative">
-                            <MessageCircle size={20} />
-                            {(coupon.total_comments || 0) > 0 && (
-                              <div className="absolute -top-2 -right-2 h-4 w-4 bg-primary rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center">
-                                <span className="text-[8px] font-black text-white">{coupon.total_comments}</span>
-                              </div>
-                            )}
-                          </div>
+                          <MessageCircle size={18} />
+                          {coupon.total_comments || 0}
                         </button>
                       </div>
 
                       <Button
-                        size="lg"
+                        size="sm"
                         onClick={() => handleCopy(coupon.code)}
                         className={cn(
-                          "h-14 px-8 rounded-[1.75rem] font-mono font-black tracking-[0.2em] text-lg uppercase transition-all shadow-xl active:scale-95 border-0",
+                          "rounded-[1.1rem] h-10 px-6 font-mono font-black tracking-widest text-xs uppercase transition-all shadow-sm active:scale-95 border-0",
                           copiedCode === coupon.code
-                            ? "bg-emerald-500 text-white shadow-emerald-200"
-                            : "bg-primary text-white hover:bg-primary/90 shadow-primary/20"
+                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            : "bg-primary text-white shadow-primary/20 hover:bg-primary/90"
                         )}
                       >
-                        {copiedCode === coupon.code ? <Check size={24} /> : coupon.code}
+                        {copiedCode === coupon.code ? <Check className="h-3.5 w-3.5" /> : coupon.code}
                       </Button>
                     </div>
                   </CardContent>

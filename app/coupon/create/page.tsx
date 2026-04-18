@@ -28,7 +28,7 @@ import { AuthGuard } from "@/components/auth-guard"
 function CreateCouponContent() {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [loading, setLoading] = useState(false)
+  const [checkingAccess, setCheckingAccess] = useState(true)
 
   // Form State
   const [couponCode, setCouponCode] = useState("")
@@ -45,6 +45,38 @@ function CreateCouponContent() {
       return response.data
     },
   })
+
+  useEffect(() => {
+    checkAccess()
+  }, [])
+
+  const checkAccess = async () => {
+    try {
+      const [settingsRes, profileRes] = await Promise.all([
+        api.get("/mobcash/setting"),
+        api.get("/auth/me")
+      ])
+      const settings = Array.isArray(settingsRes.data) ? settingsRes.data[0] : settingsRes.data
+      const profile = profileRes.data
+
+      const canPublish = settings?.allow_all_users_publish_coupons || 
+        profile?.can_publish_coupons || 
+        profile?.is_staff || 
+        (profile as any)?.is_superuser || 
+        (profile as any)?.is_supperuser
+
+      if (!canPublish) {
+        toast.error("Vous n'avez pas l'autorisation de publier des coupons.")
+        router.push("/coupon")
+        return
+      }
+    } catch (error) {
+      console.error("Error checking access:", error)
+      router.push("/coupon")
+    } finally {
+      setCheckingAccess(false)
+    }
+  }
 
   useEffect(() => {
     const count = parseInt(matchCount) || 0
@@ -83,6 +115,15 @@ function CreateCouponContent() {
       coupon_type: couponType,
       match_count: parseInt(matchCount) || 1
     })
+  }
+
+  if (checkingAccess) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50/50 dark:bg-slate-950">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 animate-pulse">Vérification des accès...</p>
+      </div>
+    )
   }
 
   return (
