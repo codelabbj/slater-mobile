@@ -68,6 +68,8 @@ function WithdrawContent() {
   const [amount, setAmount] = useState("")
   const [withdrawalCode, setWithdrawalCode] = useState("")
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [showTransactionLinkDialog, setShowTransactionLinkDialog] = useState(false)
+  const [transactionLink, setTransactionLink] = useState<string | null>(null)
   const [returnData, setReturnData] = useState<WithdrawReturnData | null>(null)
   const [betEditDialogOpen, setBetEditDialogOpen] = useState(false)
   const [betToEdit, setBetToEdit] = useState<UserAppId | null>(null)
@@ -410,7 +412,8 @@ function WithdrawContent() {
 
     // 3. Direct Transaction link from response
     if (data.transaction_link) {
-        window.open(data.transaction_link, "_blank", "noopener,noreferrer")
+        setTransactionLink(data.transaction_link)
+        setShowTransactionLinkDialog(true)
         return
     }
 
@@ -702,6 +705,14 @@ function WithdrawContent() {
   const handleConfirm = () => {
     setShowConfirmDialog(false)
     withdrawalMutation.mutate()
+  }
+
+  const handleContinueTransaction = () => {
+    if (transactionLink) {
+      window.open(transactionLink, "_blank", "noopener,noreferrer")
+      setShowTransactionLinkDialog(false)
+      router.push("/dashboard")
+    }
   }
 
   return (
@@ -1453,6 +1464,29 @@ function WithdrawContent() {
             </Button>
             <Button onClick={handleConfirm} disabled={withdrawalMutation.isPending} className="flex-1">
               {withdrawalMutation.isPending ? t("loading") : t("confirm")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transaction Link Dialog */}
+      <Dialog open={showTransactionLinkDialog} onOpenChange={setShowTransactionLinkDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Continuer la transaction</DialogTitle>
+            <DialogDescription>
+              Cliquez sur continuer pour finaliser votre retrait
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-4 pt-4">
+            <Button variant="outline" onClick={() => {
+              setShowTransactionLinkDialog(false)
+              router.push("/dashboard")
+            }} className="flex-1">
+              {t("cancel")}
+            </Button>
+            <Button onClick={handleContinueTransaction} className="flex-1">
+              Continuer
             </Button>
           </div>
         </DialogContent>

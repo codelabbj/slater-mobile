@@ -86,6 +86,9 @@ api.interceptors.response.use(
     } else if (!error.response) {
       // Network error or no response
       errorMessage = "Erreur de connexion. Veuillez vérifier votre connexion internet et réessayer."
+    } else if (error.response?.status === 401) {
+      // Suppress 401 errors per user request - avoid showing toast
+      return Promise.reject({ message: null, originalError: error, silent: true })
     } else {
       // For other status codes, try to extract message from backend response
       errorMessage =
