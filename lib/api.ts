@@ -14,7 +14,7 @@ api.interceptors.request.use(async (config) => {
 
   // Skip adding auth token for authentication endpoints
   // Check both relative paths and full URLs
-  const authEndpoints = ['auth/login', 'auth/register', 'auth/refresh']
+  const authEndpoints = ['auth/login', 'auth/register', 'auth/registration', 'auth/refresh', 'auth/send_otp', 'auth/reset_password']
   const fullUrl = config.url || ''
   const isAuthEndpoint = authEndpoints.some(endpoint =>
     fullUrl.includes(endpoint) || fullUrl.includes(`/${endpoint}`)

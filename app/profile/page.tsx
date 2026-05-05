@@ -99,6 +99,12 @@ function ProfileContent() {
         phone: data.phone || currentUser.phone,
       }
       localStorage.setItem("user", JSON.stringify(updatedUser))
+      
+      // Update user_email for parity with blaffa-mobile
+      import('@/lib/storage').then(({ PersistentStorage }) => {
+        PersistentStorage.set("user_email", data.email.replace(/\s+/g, ''))
+      }).catch(e => console.error("Error updating user_email in profile", e))
+
       queryClient.invalidateQueries({ queryKey: ["user-profile"] })
     },
     onError: (error: any) => {
@@ -126,8 +132,29 @@ function ProfileContent() {
       })
       return response.data
     },
-    onSuccess: () => {
+    onSuccess: async (_, variables) => {
       toast.success("Mot de passe modifié avec succès!")
+
+      // Update remembered credentials if the email matches
+      if (typeof window !== "undefined") {
+        try {
+          const { PersistentStorage } = await import('@/lib/storage')
+          const CREDS_KEY = "slater_remembered_creds"
+          const savedCreds = await PersistentStorage.get(CREDS_KEY)
+          if (savedCreds) {
+            const creds = JSON.parse(savedCreds)
+            const normalizedUserEmail = (profile?.email || "").trim().toLowerCase().replace(/\s+/g, '')
+            const normalizedSavedEmail = (creds.email || "").trim().toLowerCase().replace(/\s+/g, '')
+
+            if (normalizedSavedEmail === normalizedUserEmail) {
+              await PersistentStorage.set(CREDS_KEY, JSON.stringify({ ...creds, password: variables.new_password }))
+            }
+          }
+        } catch (e) {
+          console.error("Error updating saved credentials after password change", e)
+        }
+      }
+
       setPasswordForm({
         old_password: "",
         new_password: "",

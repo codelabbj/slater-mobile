@@ -33,7 +33,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
+  const [rememberMe, setRememberMe] = useState(true)
   const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [forgotPasswordStep, setForgotPasswordStep] = useState(1)
   
@@ -50,9 +50,13 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
+
+  const CREDS_KEY = "slater_remembered_creds"
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true)
@@ -63,12 +67,19 @@ export default function LoginPage() {
       // Save remember me preference
       const { PersistentStorage } = await import('@/lib/storage')
       if (rememberMe && typeof window !== "undefined") {
-        await PersistentStorage.set("remember_me", "true")
-        await PersistentStorage.set("remembered_email", data.email_or_phone)
+        await PersistentStorage.set(CREDS_KEY, JSON.stringify({ 
+          email: data.email_or_phone.trim().toLowerCase().replace(/\s+/g, ''), 
+          password: data.password 
+        }))
       } else if (typeof window !== "undefined") {
-        await PersistentStorage.remove("remember_me")
-        await PersistentStorage.remove("remembered_email")
+        await PersistentStorage.remove(CREDS_KEY)
       }
+
+      // Save user ID and email for parity with blaffa-mobile (using slater naming convention)
+      if (response.data?.data?.id) {
+        await PersistentStorage.set("user_id", response.data.data.id.toString())
+      }
+      await PersistentStorage.set("user_email", data.email_or_phone.trim().toLowerCase().replace(/\s+/g, ''))
       
       toast.success("Connexion réussie!")
       
@@ -103,17 +114,24 @@ export default function LoginPage() {
     }
   }
 
-  // Load remembered email on mount
+  // Load remembered credentials on mount
   useEffect(() => {
     const loadRememberedCredentials = async () => {
       if (typeof window !== "undefined") {
         try {
           const { PersistentStorage } = await import('@/lib/storage')
-          const remembered = await PersistentStorage.get("remember_me")
-          const rememberedEmail = await PersistentStorage.get("remembered_email")
-          if (remembered === "true" && rememberedEmail) {
-            setRememberMe(true)
-            // You can set the form value here if needed
+          const savedCreds = await PersistentStorage.get(CREDS_KEY)
+          if (savedCreds) {
+            try {
+              const { email, password } = JSON.parse(savedCreds)
+              if (email && password) {
+                setRememberMe(true)
+                setValue("email_or_phone", email)
+                setValue("password", password)
+              }
+            } catch (parseError) {
+              console.error('Error parsing saved credentials:', parseError)
+            }
           }
         } catch (error) {
           console.error('Error loading remembered credentials:', error)
@@ -122,7 +140,7 @@ export default function LoginPage() {
     }
 
     loadRememberedCredentials()
-  }, [])
+  }, [setValue])
 
   // Step 1: Send OTP
   const handleSendOtp = async () => {
@@ -191,14 +209,40 @@ export default function LoginPage() {
         confirm_new_password: forgotPasswordConfirmPassword,
       })
       toast.success("Mot de passe réinitialisé avec succès")
+
+      // Update remembered credentials if the email matches
+      if (typeof window !== "undefined") {
+        try {
+          const { PersistentStorage } = await import('@/lib/storage')
+          const savedCreds = await PersistentStorage.get(CREDS_KEY)
+          const normalizedForgotEmail = forgotPasswordEmail.trim().toLowerCase().replace(/\s+/g, '')
+
+          if (savedCreds) {
+            const creds = JSON.parse(savedCreds)
+            const normalizedSavedEmail = (creds.email || "").trim().toLowerCase().replace(/\s+/g, '')
+
+            if (normalizedSavedEmail === normalizedForgotEmail) {
+              await PersistentStorage.set(CREDS_KEY, JSON.stringify({ ...creds, password: forgotPasswordNewPassword }))
+              
+              // Pre-fill the login form with updated credentials
+              setValue("email_or_phone", creds.email)
+              setValue("password", forgotPasswordNewPassword)
+              setRememberMe(true)
+            }
+          }
+          
+          // Also update user_email to keep it in sync
+          await PersistentStorage.set("user_email", normalizedForgotEmail)
+        } catch (e) {
+          console.error("Error updating saved credentials after reset", e)
+        }
+      }
       
-      // Reset all forgot password states
-      setIsForgotPassword(false)
-      setForgotPasswordStep(1)
-      setForgotPasswordEmail("")
-      setForgotPasswordOtp("")
-      setForgotPasswordNewPassword("")
-      setForgotPasswordConfirmPassword("")
+      setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          window.location.reload()
+        }
+      }, 1000)
     } catch (error: any) {
       toast.error(error.message || "Erreur lors de la réinitialisation du mot de passe")
     } finally {
@@ -480,6 +524,11 @@ export default function LoginPage() {
                 onClick={() => {
                   setIsForgotPassword(true)
                   setForgotPasswordStep(1)
+                  // Pre-fill email if available in the login form
+                  const currentEmail = watch("email_or_phone")
+                  if (currentEmail && currentEmail.includes("@")) {
+                    setForgotPasswordEmail(currentEmail)
+                  }
                 }}
                 disabled={isLoading}
               >
