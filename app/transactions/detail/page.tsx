@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { AuthGuard } from "@/components/auth-guard"
 import api from "@/lib/api"
+import { getUser } from "@/lib/auth"
 import type { Transaction, Network } from "@/lib/types"
 import { formatDate } from "@/lib/utils"
 import { getTransactionStatusLabel } from "@/lib/constants"
@@ -41,6 +42,12 @@ function TransactionDetailContent() {
       const response = await api.get<Network[]>("/mobcash/network")
       return response.data
     },
+  })
+
+  // Fetch user for the message
+  const { data: user } = useQuery({
+    queryKey: ["user-current"],
+    queryFn: () => getUser(),
   })
 
   // Fetch the specific transaction
@@ -304,10 +311,30 @@ function TransactionDetailContent() {
             className="w-full h-16 rounded-[24px] bg-white text-primary border border-primary/10 text-xl font-bold shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 backdrop-blur-xl"
             onClick={() => {
               const phone = settings?.whatsapp_phone || "2250544360901"
-              const message = `Bonjour, j'ai besoin d'aide concernant ma transaction :
-- Réf : ${transaction.reference}
-- Montant : ${transaction.amount}
-- Date : ${formatDate(transaction.created_at)}`
+              
+              const formatWhatsAppDate = (dateString: string) => {
+                const date = new Date(dateString)
+                const day = String(date.getDate()).padStart(2, '0')
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const year = date.getFullYear()
+                const hours = String(date.getHours()).padStart(2, '0')
+                const minutes = String(date.getMinutes()).padStart(2, '0')
+                return `${day}/${month}/${year} ${hours}:${minutes}`
+              }
+
+              const transType = transaction.type_trans === "deposit" ? "dépôt" : "retrait"
+              const userName = user ? `${user.first_name} ${user.last_name}` : "{Utilisateur}"
+              const networkName = network?.public_name || "N/A"
+              const dateStr = formatWhatsAppDate(transaction.created_at)
+
+              const message = `Bonjour moi c'est ${userName}, j'ai besoin d'aide concernant mon ${transType}.
+*Référence:* ${transaction.reference}
+*Montant:* XOF ${transaction.amount.toLocaleString()}
+*Date transaction:* ${dateStr}
+*Réseau:* ${networkName}
+*Téléphone:* ${transaction.phone_number}
+*1xBet ID:* ${transaction.user_app_id}
+La capture du ${transType}`
               
               const encodedMsg = encodeURIComponent(message)
               window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank')

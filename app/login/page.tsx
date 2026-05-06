@@ -214,22 +214,13 @@ export default function LoginPage() {
       if (typeof window !== "undefined") {
         try {
           const { PersistentStorage } = await import('@/lib/storage')
-          const savedCreds = await PersistentStorage.get(CREDS_KEY)
           const normalizedForgotEmail = forgotPasswordEmail.trim().toLowerCase().replace(/\s+/g, '')
 
-          if (savedCreds) {
-            const creds = JSON.parse(savedCreds)
-            const normalizedSavedEmail = (creds.email || "").trim().toLowerCase().replace(/\s+/g, '')
-
-            if (normalizedSavedEmail === normalizedForgotEmail) {
-              await PersistentStorage.set(CREDS_KEY, JSON.stringify({ ...creds, password: forgotPasswordNewPassword }))
-              
-              // Pre-fill the login form with updated credentials
-              setValue("email_or_phone", creds.email)
-              setValue("password", forgotPasswordNewPassword)
-              setRememberMe(true)
-            }
-          }
+          // Always save the new credentials so the user can log in immediately
+          await PersistentStorage.set(CREDS_KEY, JSON.stringify({ 
+            email: normalizedForgotEmail, 
+            password: forgotPasswordNewPassword 
+          }))
           
           // Also update user_email to keep it in sync
           await PersistentStorage.set("user_email", normalizedForgotEmail)
