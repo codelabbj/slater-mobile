@@ -1,4 +1,4 @@
-import type { CapacitorConfig } from "@capacitor/cli"
+git pull --import type { CapacitorConfig } from "@capacitor/cli"
 
 const config: CapacitorConfig = {
   appId: "com.slater.android",
@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
     },
   },
   server: {
-    url: "https://slaterci-mobile-app.vercel.app", // décommente pour la prod
+    url: "https://slaterci-mobile-app.vercel.app",
     cleartext: false
   },
 }
