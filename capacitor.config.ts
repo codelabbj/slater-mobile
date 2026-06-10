@@ -1,24 +1,19 @@
 import type { CapacitorConfig } from "@capacitor/cli"
 
 const config: CapacitorConfig = {
-  appId: "com.slater.app",
+  appId: "com.slater.android",
   appName: "Slater",
   webDir: "out",
-  //bundledWebRuntime: false,
-  // plugins: {
-  //   CapacitorUpdater: {
-  //     autoUpdate: false
-  //   }
-  // },
-  // plugins: {
-  //   CapacitorUpdater: {
-  //     autoUpdate: true,
-  //     server: "https://slater-mobile-app-1-p3ef20nbk-codelabbjgmailcoms-projects.vercel.app",
-  //   }
-  // },
+  plugins: {
+    GoogleAuth: {
+      scopes: ["profile", "email"],
+      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+      serverClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+      forceCodeForRefreshToken: true,
+    },
+  },
   server: {
-    // androidScheme: "https",
-    url: "https://slaterci-mobile-app.vercel.app",
+    // url: "https://slaterci-mobile-app.vercel.app", // décommente pour la prod
     cleartext: false
   },
 }

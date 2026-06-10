@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import api from "@/lib/api"
 import { useSettings } from "@/hooks/use-settings"
+import { GoogleButton } from "@/components/google-button"
 
 const step1Schema = z.object({
   first_name: z.string().min(2, "Le prénom doit contenir au minimum 2 caractères"),
@@ -484,6 +485,11 @@ export default function RegisterPage() {
               Se connecter
             </Link>
           </p>
+        </div>
+
+        {/* Bouton Google */}
+        <div className="mt-4">
+          <GoogleButton mode="register" />
         </div>
       </div>
     </div>

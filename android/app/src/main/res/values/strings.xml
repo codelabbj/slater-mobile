@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Slater</string>
     <string name="title_activity_main">Slater</string>
-    <string name="package_name">com.slater.app</string>
-    <string name="custom_url_scheme">com.slater.app</string>
+    <string name="package_name">com.slater.android</string>
+    <string name="custom_url_scheme">com.slater.android</string>
+    <string name="server_client_id">955218384043-vja5ll2et2m01dijivpvr1oltumomupi.apps.googleusercontent.com</string>
 </resources>

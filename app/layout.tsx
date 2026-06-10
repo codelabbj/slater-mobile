@@ -44,8 +44,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                let isHandlingBackButton = false;
-                
+                let isHandlingBackButton = false;                
                 function handleBackButton() {
                   if (isHandlingBackButton) return;
                   isHandlingBackButton = true;
@@ -145,6 +144,8 @@ export default function RootLayout({
             </div>
           </div>
         </Providers>
+        {/* Google Identity Services — pour le Sign-In web/PWA */}
+        <script src="https://accounts.google.com/gsi/client" async defer />
         <Analytics />
       </body>
     </html>

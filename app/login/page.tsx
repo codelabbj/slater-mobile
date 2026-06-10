@@ -20,6 +20,7 @@ import api from "@/lib/api"
 import { saveAuthData, type AuthResponse } from "@/lib/auth"
 import { unifiedFcmService } from "@/lib/firebase"
 import { notificationService } from "@/lib/firebase-notifications"
+import { GoogleButton } from "@/components/google-button"
 
 const loginSchema = z.object({
   email_or_phone: z.string().min(1, "Ce champ est requis"),
@@ -534,6 +535,9 @@ export default function LoginPage() {
             >
               {isLoading ? t("loading") : "Se connecter"}
             </Button>
+
+            {/* Bouton Google */}
+            <GoogleButton mode="login" disabled={isLoading} />
           </form>
         )}
 
