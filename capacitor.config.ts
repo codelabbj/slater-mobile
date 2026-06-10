@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
     },
   },
   server: {
-    // url: "https://slaterci-mobile-app.vercel.app", // décommente pour la prod
+    url: "https://slaterci-mobile-app.vercel.app", // décommente pour la prod
     cleartext: false
   },
 }
