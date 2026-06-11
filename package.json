@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "next build",
+    "build:android": "next build && rm -rf out/releases && npx cap sync android && rm -rf android/app/src/main/assets/public/releases/*.apk && cd android && ./gradlew assembleRelease",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
