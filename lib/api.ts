@@ -76,6 +76,12 @@ api.interceptors.response.use(
       }
     }
 
+    // Suppress errors for last-transaction or silent requests - avoid showing toast
+    const isLastTransaction = original?.url?.includes("last-transaction")
+    if (isLastTransaction || original?._silent) {
+      return Promise.reject({ message: null, originalError: error, silent: true })
+    }
+
     // Handle specific HTTP status codes with default French messages
     let errorMessage = ""
 

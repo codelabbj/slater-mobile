@@ -158,7 +158,7 @@ function DepositContent() {
     queryKey: ["last-transaction", "deposit"],
     queryFn: async () => {
       try {
-        const response = await api.get<any>("/mobcash/last-transaction")
+        const response = await api.get<any>("/mobcash/last-transaction", { _silent: true } as any)
         console.log("Last transaction response:", response.data)
         
         // Handle both single object and array responses

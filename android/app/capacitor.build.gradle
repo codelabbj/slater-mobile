@@ -18,7 +18,6 @@ dependencies {
     implementation project(':capacitor-push-notifications')
     implementation project(':capacitor-share')
     implementation project(':capgo-capacitor-updater')
-    implementation project(':codetrix-studio-capacitor-google-auth')
 
 }
 
